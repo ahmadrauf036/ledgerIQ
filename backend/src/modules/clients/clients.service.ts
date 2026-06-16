@@ -1,42 +1,37 @@
-import { supabase, supabaseAdmin } from "../../lib/supabase";
+import { supabaseAdmin } from "../../lib/supabase";
+import { seedDefaultAccounts } from "../accounts/accounts.seed";
+import { sendInvite } from "../invites/invites.service";
 import type { CreateClientBody } from "./clients.types";
 
 // ── Get all clients ──────────────────────────────
 export const getAllClients = async () => {
-    const { data, error } = await supabaseAdmin
+    // Fetch accepted clients (have user_companies row)
+    const { data: acceptedData, error: acceptedError } = await supabaseAdmin
         .from("user_companies")
         .select(
             `
             user_id,
             role,
             companies (
-                id,
-                name,
-                currency,
-                financial_year_start,
-                address,
-                phone,
-                ntn_number,
-                is_active,
-                created_at
+                id, name, email, currency,
+                financial_year_start, address,
+                phone, ntn_number, is_active, created_at
             )
         `,
         )
         .eq("role", "client_owner");
 
-    if (error) throw new Error(error.message);
+    if (acceptedError) throw new Error(acceptedError.message);
 
-    // Get user details from auth for each client
-    const enriched = await Promise.all(
-        data.map(async (item: any) => {
+    const accepted = await Promise.all(
+        (acceptedData ?? []).map(async (item: any) => {
             const { data: userData } =
                 await supabaseAdmin.auth.admin.getUserById(item.user_id);
-
             return {
                 id: item.companies.id,
                 company_name: item.companies.name,
                 full_name: userData?.user?.user_metadata?.full_name ?? "",
-                email: userData?.user?.email ?? "",
+                email: item.companies.email ?? userData?.user?.email ?? "",
                 currency: item.companies.currency,
                 financial_year_start: item.companies.financial_year_start,
                 address: item.companies.address,
@@ -45,11 +40,51 @@ export const getAllClients = async () => {
                 is_active: item.companies.is_active,
                 created_at: item.companies.created_at,
                 user_id: item.user_id,
+                invite_status: "accepted",
             };
         }),
     );
 
-    return enriched;
+    // Fetch pending clients (have invite but no user yet)
+    const { data: pendingData, error: pendingError } = await supabaseAdmin
+        .from("invites")
+        .select(
+            `
+            email,
+            status,
+            role,
+            companies (
+                id, name, email, currency,
+                financial_year_start, address,
+                phone, ntn_number, is_active, created_at
+            )
+        `,
+        )
+        .eq("role", "client_owner")
+        .eq("status", "pending");
+
+    if (pendingError) throw new Error(pendingError.message);
+    const acceptedCompanyIds = accepted.map((c) => c.id);
+    const pending = (pendingData ?? [])
+        .filter((item: any) => !acceptedCompanyIds.includes(item.companies.id))
+        .map((item: any) => ({
+            id: item.companies.id,
+            company_name: item.companies.name,
+            full_name: "",
+            email: item.companies.email ?? item.email,
+            currency: item.companies.currency,
+            financial_year_start: item.companies.financial_year_start,
+            address: item.companies.address,
+            phone: item.companies.phone,
+            ntn_number: item.companies.ntn_number,
+            is_active: item.companies.is_active,
+            created_at: item.companies.created_at,
+            user_id: null,
+            invite_status: "pending", // ← useful for showing badge in UI
+        }));
+
+    // Merge — accepted first then pending
+    return [...accepted, ...pending];
 };
 
 // ── Get single client ────────────────────────────
@@ -65,7 +100,7 @@ export const getClientById = async (companyId: string) => {
 };
 
 // ── Create client ────────────────────────────────
-export const createClient = async (body: CreateClientBody) => {
+export const createClient = async (body: CreateClientBody, invitedBy: string) => {
     const {
         company_name,
         full_name,
@@ -77,11 +112,13 @@ export const createClient = async (body: CreateClientBody) => {
         currency,
     } = body;
 
-    // Step 1 — Create company
+    // Step 1 — Create company only
+    // No auth user created yet — user is created when they set password
     const { data: company, error: companyError } = await supabaseAdmin
         .from("companies")
         .insert({
             name: company_name,
+            email, // store email in company
             currency,
             financial_year_start,
             phone: phone ?? null,
@@ -92,51 +129,36 @@ export const createClient = async (body: CreateClientBody) => {
         .single();
 
     if (companyError) throw new Error(companyError.message);
-
-    // Step 2 — Create Supabase auth user with invite
-    const { data: authUser, error: authError } =
-        await supabaseAdmin.auth.admin.createUser({
-            email,
-            email_confirm: false, // sends invite email
-            app_metadata: {
+    // Step 2 — Seed default chart of accounts
+    try {
+        await seedDefaultAccounts(company.id);
+    } catch (err) {
+        // Log but don't fail — accounts can be seeded manually later
+        console.error("Failed to seed accounts:", (err as Error).message);
+    }
+    // Step 3 — Create invite row + send email via Resend
+    try {
+        const { invite } = await sendInvite(
+            {
+                email,
                 role: "client_owner",
                 company_id: company.id,
+                full_name, // ← pass it
             },
-            user_metadata: {
-                full_name,
-            },
-        });
+            invitedBy,
+        );
 
-    if (authError) {
-        // Rollback — delete company if user creation fails
+        return {
+            company,
+            invite,
+            message: "Client created and invite email sent",
+        };
+    } catch (err) {
+        // Rollback — delete company if invite fails
         await supabaseAdmin.from("companies").delete().eq("id", company.id);
-        throw new Error(authError.message);
+        throw new Error((err as Error).message);
     }
-
-    // Step 3 — Link user to company in user_companies
-    const { error: linkError } = await supabaseAdmin.from("user_companies").insert({
-        user_id: authUser.user.id,
-        company_id: company.id,
-        role: "client_owner",
-    });
-
-    if (linkError) throw new Error(linkError.message);
-
-    // Step 4 — Update company owner_id
-    await supabaseAdmin
-        .from("companies")
-        .update({ owner_id: authUser.user.id })
-        .eq("id", company.id);
-
-    return {
-        company,
-        user: {
-            id: authUser.user.id,
-            email: authUser.user.email,
-            full_name,
-        },
-    };
-};
+};;
 
 // ── Update client ────────────────────────────────
 export const updateClient = async (
@@ -181,7 +203,10 @@ export const updateClient = async (
 export const deactivateClient = async (companyId: string) => {
     const { data, error } = await supabaseAdmin
         .from("companies")
-        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .update({
+            is_active: false,
+            updated_at: new Date().toISOString(),
+        })
         .eq("id", companyId)
         .select()
         .single();

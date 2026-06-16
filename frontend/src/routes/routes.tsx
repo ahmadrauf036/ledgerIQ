@@ -1,16 +1,16 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import App from "@/App";
-import Login from "@/pages/auth/Login";
-import { Dashboard } from "@/pages/dashboard/Dashboard";
-import Unauthorized from "@/pages/unauthorized/Unauthorized";
-import ProtectedRoute from "@/routes/ProtectedRoute";
-import DashboardLayout from "@/pages/DashboardLayout";
-import ClientsPage from "@/pages/clients/Clients";
+import App from "../App"; 
+import Login from "../pages/auth/Login";
+import { Dashboard } from "../pages/dashboard/Dashboard";
+import Unauthorized from "../pages/unauthorized/Unauthorized";
+import ProtectedRoute from "../routes/ProtectedRoute";
+import DashboardLayout from "../pages/DashboardLayout";
+import ClientsPage from "../pages/clients/Clients";
 import { RoleRedirect } from "./roleRedirect";
-import ForgotPassword from "@/pages/auth/ForgetPassword";
-import ResetPassword from "@/pages/auth/ResetPassword";
-import SetPassword from "@/pages/auth/SetPassword";
-
+import ForgotPassword from "../pages/auth/ForgetPassword";
+import ResetPassword from "../pages/auth/ResetPassword";
+import SetPassword from "../pages/auth/SetPassword";
+import PublicRoute from "./PublicRoute";
 
 export const router = createBrowserRouter([
     {
@@ -27,24 +27,12 @@ export const router = createBrowserRouter([
                 ),
             },
 
-            // Public
-            {
-                path: "login",
-                element: <RoleRedirect />,
-            },
-            { path: "login", element: <Login /> },
+        
+            { path: "login", element: <PublicRoute><Login /></PublicRoute> },
             { path: "forgot-password", element: <ForgotPassword /> },
             { path: "reset-password", element: <ResetPassword /> },
             { path: "set-password", element: <SetPassword /> },
             { path: "unauthorized", element: <Unauthorized /> },
-
-            // Public
-            {
-                path: "unauthorized",
-                element: <Unauthorized />,
-            },
-
-            // Protected layout — all pages inside share the sidebar
             {
                 element: (
                     <ProtectedRoute>
@@ -81,8 +69,6 @@ export const router = createBrowserRouter([
                     // },
                 ],
             },
-
-            // Catch-all
             {
                 path: "*",
                 element: <Navigate to="/" replace />,

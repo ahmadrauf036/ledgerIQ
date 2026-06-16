@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuthStore } from "@/modules/auth/auth.store";
-import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
+import { useAuthStore } from "../../modules/auth/auth.store";
+import { Button } from "../../components/ui/button";
+import { Spinner } from "../../components/ui/spinner";
 import { LogOutIcon, LayoutDashboard, BookText, Users } from "lucide-react";
 import {
     Sidebar,
@@ -14,8 +14,8 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { cn } from "@/lib/shadcn.utils";
+} from "./sidebar";
+import { cn } from "../../lib/shadcn.utils";
 
 export function AppSidebar() {
     const navigate = useNavigate();

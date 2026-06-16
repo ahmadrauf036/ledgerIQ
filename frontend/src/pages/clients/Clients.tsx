@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { useClientsStore } from "@/modules/clients/clients.store";
-import ClientsTable from "@/components/clients/ClientsTable";
-import CreateClientModal from "@/components/clients/ClientsModal";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useClientsStore } from "../../modules/clients/clients.store";
+import ClientsTable from "../../components/clients/ClientsTable";
+import CreateClientModal from "../../components/clients/ClientsModal";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
 import { UserPlus, Search } from "lucide-react";
 
 export default function ClientsPage() {

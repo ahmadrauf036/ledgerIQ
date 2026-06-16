@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Button } from "../../components/ui/button";
 import { ArrowUpRight, LogOutIcon, UserLock } from "lucide-react";
-import { useAuthStore } from "@/modules/auth/auth.store";
-import { Spinner } from "@/components/ui/spinner";
+import { useAuthStore } from "../../modules/auth/auth.store";
+import { Spinner } from "../../components/ui/spinner";
 
 export default function UnauthorizedPage() {
     const navigate = useNavigate();
-    const { signOut,loading } = useAuthStore();
+    const { signOut, loading } = useAuthStore();
 
     const handleLogout = async () => {
         await signOut();
@@ -14,8 +14,12 @@ export default function UnauthorizedPage() {
     };
     return (
         <div className="min-h-screen flex items-center justify-center bg-accent-foreground px-4">
-            <Button  className="absolute right-5 top-5" variant="destructive" onClick={handleLogout}>
-                {loading?<Spinner/>:null}
+            <Button
+                className="absolute right-5 top-5"
+                variant="destructive"
+                onClick={handleLogout}
+            >
+                {loading ? <Spinner /> : null}
                 <LogOutIcon />
                 Logout
             </Button>

@@ -1,9 +1,9 @@
 import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
-import { router } from "@/routes/routes";
-import { supabase } from "@/lib/supabase.utils";
-import { useAuthStore } from "@/modules/auth/auth.store";
+import { router } from "./routes/routes"; 
+import { supabase } from "./lib/supabase.utils"; 
+import { useAuthStore } from "./modules/auth/auth.store"; 
 import "./index.css";
 import { Toaster } from "sonner";
 function Root() {

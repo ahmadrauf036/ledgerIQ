@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
-import { useAuthStore, type UserRole } from "@/modules/auth/auth.store";
-import { Spinner } from "@/components/ui/spinner";
+import { useAuthStore, type UserRole } from "../modules/auth/auth.store";
+import { Spinner } from "../components/ui/spinner";
 
 interface Props {
     children: React.ReactNode;

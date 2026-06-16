@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { supabase } from "@/lib/supabase.utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
+import { supabase } from "../../lib/supabase.utils"; 
+import { Button } from "../../components/ui/button"; 
+import { Input } from "../../components/ui/input"; 
+import { Label } from "../../components/ui/label";
+import { Card, CardContent } from "../../components/ui/card";
 import { toast } from "sonner";
+import { Spinner } from "../../components/ui/spinner";
 
 const schema = z
     .object({
@@ -29,6 +30,8 @@ type FormData = z.infer<typeof schema>;
 export default function ResetPassword() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    const [validSession, setValidSession] = useState(false);
+    const [checking, setChecking] = useState(true);
 
     const {
         register,
@@ -36,31 +39,92 @@ export default function ResetPassword() {
         formState: { errors },
     } = useForm<FormData>({ resolver: zodResolver(schema) });
 
+    useEffect(() => {
+        // Supabase puts the recovery token in the URL hash
+        // onAuthStateChange fires with SIGNED_IN event on recovery
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange((event) => {
+            if (event === "PASSWORD_RECOVERY") {
+                setValidSession(true);
+                setChecking(false);
+            }
+        });
+
+        // Fallback — check existing session
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                setValidSession(true);
+            }
+            setChecking(false);
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
     const onSubmit = async (data: FormData) => {
         setLoading(true);
         const { error } = await supabase.auth.updateUser({
             password: data.password,
         });
         setLoading(false);
+
         if (error) {
             toast.error(error.message);
             return;
         }
+
         toast.success("Password updated successfully");
         navigate("/login", { replace: true });
     };
 
+    if (checking) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-muted/40">
+                <p className="text-sm text-muted-foreground">
+                    Verifying reset link...
+                </p>
+            </div>
+        );
+    }
+
+    if (!validSession) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-muted/40 px-4">
+                <div className="w-full max-w-sm text-center space-y-4">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-destructive/10 mx-auto">
+                        <span className="text-xl">⚠️</span>
+                    </div>
+                    <h1 className="text-lg font-semibold">
+                        Invalid reset link
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                        This link is invalid or has expired. Please request a
+                        new one.
+                    </p>
+                    <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => navigate("/forgot-password")}
+                    >
+                        Request new link
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="min-h-screen flex items-center justify-center bg-muted/40 px-4">
+        <div className="min-h-screen flex items-center justify-center text-muted px-4 bg-black">
             <div className="w-full max-w-sm space-y-6">
                 <div className="text-center space-y-2">
-                    <h1 className="text-xl font-semibold">Set new password</h1>
-                    <p className="text-sm text-muted-foreground">
+                    <h1 className="text-xl font-semibold ">Set new password</h1>
+                    <p className="text-sm text-muted/75">
                         Choose a strong password for your account
                     </p>
                 </div>
 
-                <Card>
+                <Card className="bg-accent-foreground text-muted">
                     <CardContent className="pt-6">
                         <form
                             onSubmit={handleSubmit(onSubmit)}
@@ -100,10 +164,17 @@ export default function ResetPassword() {
 
                             <Button
                                 type="submit"
-                                className="w-full"
+                                className="w-full bg-[#10b981] hover:bg-[#10b981]/70"
                                 disabled={loading}
                             >
-                                {loading ? "Updating..." : "Update password"}
+                                {loading ? (
+                                    <>
+                                        <Spinner />
+                                        Updating...
+                                    </>
+                                ) : (
+                                    "Update password"
+                                )}
                             </Button>
                         </form>
                     </CardContent>

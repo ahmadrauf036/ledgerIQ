@@ -1,9 +1,10 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useAuthStore } from "@/modules/auth/auth.store";
-import type { LoginForm } from "@/modules/auth/login.schema";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Spinner } from "../../components/ui/spinner";
+import { useAuthStore } from "../../modules/auth/auth.store";
+import type { LoginForm } from "../../modules/auth/login.schema";
 import { BookText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -111,7 +112,7 @@ export default function Login() {
                                 type="submit"
                                 className="w-full mt-2 bg-[#1D9E75]"
                             >
-                                {loading ? "Signing in..." : "Sign in"}
+                                {loading ? <><Spinner/>Signing in...</> : "Sign in"}
                             </Button>
                         </form>
                     </CardContent>

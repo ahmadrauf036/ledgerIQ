@@ -10,10 +10,7 @@ import {
 
 export const clientsRoutes = Router();
 
-// All routes require authentication
 clientsRoutes.use(authenticate);
-
-// All routes require super_admin
 clientsRoutes.use(authorize("super_admin"));
 
 clientsRoutes.get("/", getClients);

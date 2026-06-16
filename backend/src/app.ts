@@ -1,10 +1,13 @@
+
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import { errorHandler } from "@/shared/error.middleware";
-import { authRoutes } from "@/modules/auth/auth.routes";
+import { errorHandler } from "./shared/error.middleware";
+import { authRoutes } from "./modules/auth/auth.routes"; 
 import { clientsRoutes } from "./modules/clients/clients.routes";
+import { invitesRoutes } from "./modules/invites/invites.routes";
+import { accountsRoutes } from "./modules/accounts/accounts.routes";
 
 // Add this line with other routes
 const app = express();
@@ -26,9 +29,8 @@ app.get("/health", (_req, res) => {
 // All routes
 app.use("/api/auth", authRoutes);
 app.use("/api/clients", clientsRoutes);
-
-
-
+app.use("/api/invites", invitesRoutes);
+app.use("/api/accounts", accountsRoutes);
 // Global error handler — must be last
 app.use(errorHandler);
 

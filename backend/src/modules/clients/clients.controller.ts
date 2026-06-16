@@ -30,9 +30,11 @@ export const createClient = async (req: AuthRequest, res: Response) => {
     if (!parsed.success) {
         return sendError(res, parsed.error.issues[0].message);
     }
-
     try {
-        const result = await clientsService.createClient(parsed.data);
+        const result = await clientsService.createClient(
+            parsed.data,
+            req.user!.id, // ← pass invitedBy
+        );
         return sendSuccess(res, result, 201);
     } catch (err) {
         return sendError(res, (err as Error).message);

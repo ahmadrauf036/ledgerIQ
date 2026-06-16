@@ -1,5 +1,5 @@
 import { Response, NextFunction } from "express";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "../../lib/supabase";
 import { AuthRequest } from "./auth.types";
 
 export const authenticate = async (

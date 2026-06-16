@@ -1,5 +1,5 @@
-import { useAuthStore } from "@/modules/auth/auth.store";
-import Login from "@/pages/auth/Login";
+import { useAuthStore } from "../modules/auth/auth.store";
+import Login from "../pages/auth/Login";
 import { Navigate } from "react-router-dom";
 
 export function RoleRedirect() {
