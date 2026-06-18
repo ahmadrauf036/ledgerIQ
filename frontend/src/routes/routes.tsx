@@ -11,6 +11,7 @@ import ForgotPassword from "../pages/auth/ForgetPassword";
 import ResetPassword from "../pages/auth/ResetPassword";
 import SetPassword from "../pages/auth/SetPassword";
 import PublicRoute from "./PublicRoute";
+import ChartOfAccountsPage from "../pages/accounts/ChartOfAccounts";
 
 export const router = createBrowserRouter([
     {
@@ -27,8 +28,14 @@ export const router = createBrowserRouter([
                 ),
             },
 
-        
-            { path: "login", element: <PublicRoute><Login /></PublicRoute> },
+            {
+                path: "login",
+                element: (
+                    <PublicRoute>
+                        <Login />
+                    </PublicRoute>
+                ),
+            },
             { path: "forgot-password", element: <ForgotPassword /> },
             { path: "reset-password", element: <ResetPassword /> },
             { path: "set-password", element: <SetPassword /> },
@@ -57,16 +64,16 @@ export const router = createBrowserRouter([
                             </ProtectedRoute>
                         ),
                     },
+                    {
+                        path: "accounts",
+                        element: (
+                            <ProtectedRoute allowedRoles={["super_admin"]}>
+                                <ChartOfAccountsPage />
+                            </ProtectedRoute>
+                        ),
+                    },
 
-                    // Add more routes here as pages are built
-                    // {
-                    //     path: "accounts",
-                    //     element: (
-                    //         <ProtectedRoute allowedRoles={["super_admin", "client_owner", "bookkeeper"]}>
-                    //             <ChartOfAccountsPage />
-                    //         </ProtectedRoute>
-                    //     ),
-                    // },
+                    
                 ],
             },
             {

@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../modules/auth/auth.store";
 import { Button } from "../../components/ui/button";
 import { Spinner } from "../../components/ui/spinner";
-import { LogOutIcon, LayoutDashboard, BookText, Users } from "lucide-react";
+import { LogOutIcon, LayoutDashboard, BookText, Users, BookOpen } from "lucide-react";
 import {
     Sidebar,
     SidebarContent,
@@ -38,6 +38,12 @@ export function AppSidebar() {
             title: "Clients",
             url: "/clients",
             icon: Users,
+            roles: ["super_admin"],
+        },
+        {
+            title: "Chart of accounts",
+            url: "/accounts",
+            icon: BookOpen,
             roles: ["super_admin"],
         },
     ];

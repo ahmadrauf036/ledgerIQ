@@ -10,6 +10,8 @@ import { sendSuccess, sendError } from "../../lib/response";
 
 // GET /api/accounts?company_id=uuid&type=asset
 export const getAccounts = async (req: AuthRequest, res: Response) => {
+    console.log("1");
+
     const parsed = getAccountsSchema.safeParse(req.query);
     if (!parsed.success) {
         return sendError(res, parsed.error.issues[0].message);
@@ -28,6 +30,8 @@ export const getAccounts = async (req: AuthRequest, res: Response) => {
 
 // GET /api/accounts/flat?company_id=uuid&type=asset
 export const getAccountsFlat = async (req: AuthRequest, res: Response) => {
+    console.log("2");
+
     const parsed = getAccountsSchema.safeParse(req.query);
     if (!parsed.success) {
         return sendError(res, parsed.error.issues[0].message);
@@ -43,6 +47,8 @@ export const getAccountsFlat = async (req: AuthRequest, res: Response) => {
 
 // GET /api/accounts/:id
 export const getAccount = async (req: AuthRequest, res: Response) => {
+    console.log("3");
+
     try {
         const account = await accountsService.getAccountById(req.params.id as string);
         return sendSuccess(res, account);
@@ -53,6 +59,7 @@ export const getAccount = async (req: AuthRequest, res: Response) => {
 
 // POST /api/accounts
 export const createAccount = async (req: AuthRequest, res: Response) => {
+
     const parsed = createAccountSchema.safeParse(req.body);
     if (!parsed.success) {
         return sendError(res, parsed.error.issues[0].message);
@@ -94,6 +101,7 @@ export const deactivateAccount = async (req: AuthRequest, res: Response) => {
 
 // POST /api/accounts/seed/:company_id
 export const seedAccounts = async (req: AuthRequest, res: Response) => {
+
     try {
         const result = await accountsService.seedAccounts(
             req.params.company_id as string,
@@ -103,3 +111,30 @@ export const seedAccounts = async (req: AuthRequest, res: Response) => {
         return sendError(res, (err as Error).message);
     }
 };
+
+
+
+
+
+
+// # Create account
+// POST http://localhost:5000/api/accounts
+// Authorization: Bearer <token>
+// {
+//   "company_id": "uuid",
+//   "code": "1115",
+//   "name": "Petty Cash",
+//   "type": "asset",
+//   "parent_id": "uuid-of-1100"
+// }
+
+// # Update account
+// PATCH http://localhost:5000/api/accounts/:id
+// Authorization: Bearer <token>
+// {
+//   "name": "Updated Name"
+// }
+
+// # Deactivate account
+// DELETE http://localhost:5000/api/accounts/:id
+// Authorization: Bearer <token>

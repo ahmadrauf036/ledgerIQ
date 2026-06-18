@@ -5,43 +5,62 @@ import type {
     UpdateAccountBody,
     AccountWithBalance,
 } from "./accounts.types";
-
 // ── Build account tree ───────────────────────────
 const buildTree = (
-    accounts: AccountWithBalance[],
+    accounts: any[],
     parentId: string | null = null,
-): AccountWithBalance[] => {
+    depth: number = 0,
+): any[] => {
+    if (depth > 10) return [];
+
     return accounts
-        .filter((a) => a.parent_id === parentId)
-        .map((a) => ({
-            ...a,
-            children: buildTree(accounts, a.id),
-        }));
+        .filter((a) => (a.parent_id ?? null) === parentId)
+        .map((a) => {
+            const id = a.account_id ?? a.id;
+            return {
+                id, // ← single clean id field
+                company_id: a.company_id,
+                code: a.code,
+                name: a.name,
+                type: a.type,
+                parent_id: a.parent_id,
+                is_active: a.is_active,
+                total_debit: a.total_debit,
+                total_credit: a.total_credit,
+                balance: a.balance,
+                children: buildTree(accounts, id, depth + 1),
+            };
+        });
 };
 
 // ── Get all accounts for a company ──────────────
-export const getAccounts = async (companyId: string, type?: string) => {
+export const getAccounts = async (
+    companyId: string,
+    type?: string
+) => {
     let query = supabaseAdmin
         .from("account_balances")
         .select("*")
         .eq("company_id", companyId)
-        .order("code", { ascending: true });
+        .order("code", { ascending: true })
 
     if (type) {
-        query = query.eq("type", type);
+        query = query.eq("type", type)
     }
 
-    const { data, error } = await query;
-
-    if (error) throw new Error(error.message);
-    return data as AccountWithBalance[];
-};
+    const { data, error } = await query
+    if (error) throw new Error(error.message)
+    return data
+}
 
 // ── Get accounts as tree ─────────────────────────
-export const getAccountsTree = async (companyId: string, type?: string) => {
-    const accounts = await getAccounts(companyId, type);
-    return buildTree(accounts);
-};
+export const getAccountsTree = async (
+    companyId: string,
+    type?: string
+) => {
+    const accounts = await getAccounts(companyId, type)
+    return buildTree(accounts)
+}
 
 // ── Get single account ───────────────────────────
 export const getAccountById = async (accountId: string) => {

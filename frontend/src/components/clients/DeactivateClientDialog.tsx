@@ -60,7 +60,7 @@ export default function DeactivateClientDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <DialogFooter className="gap-2">
+                <DialogFooter className="gap-2 bg-accent-foreground">
                     <Button
                         variant="ghost"
                         onClick={onClose}
