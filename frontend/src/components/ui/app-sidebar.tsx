@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../modules/auth/auth.store";
 import { Button } from "../../components/ui/button";
 import { Spinner } from "../../components/ui/spinner";
-import { LogOutIcon, LayoutDashboard, BookText, Users, BookOpen } from "lucide-react";
+import { LogOutIcon, LayoutDashboard, BookText, Users, BookOpen, NotebookText } from "lucide-react";
 import {
     Sidebar,
     SidebarContent,
@@ -46,6 +46,12 @@ export function AppSidebar() {
             icon: BookOpen,
             roles: ["super_admin"],
         },
+        {
+    title: "Journal entries",
+    url: "/transactions",
+    icon: NotebookText,
+    roles: ["super_admin"],
+},
     ];
 
     const filteredItems = menuItems.filter(

@@ -12,6 +12,8 @@ import ResetPassword from "../pages/auth/ResetPassword";
 import SetPassword from "../pages/auth/SetPassword";
 import PublicRoute from "./PublicRoute";
 import ChartOfAccountsPage from "../pages/accounts/ChartOfAccounts";
+import LedgerPage from "../pages/transactions/Ledger";
+import JournalEntriesPage from "../pages/transactions/JournalEntries";
 
 export const router = createBrowserRouter([
     {
@@ -72,6 +74,22 @@ export const router = createBrowserRouter([
                             </ProtectedRoute>
                         ),
                     },
+                    {
+    path: "transactions",
+    element: (
+        <ProtectedRoute allowedRoles={["super_admin"]}>
+            <JournalEntriesPage />
+        </ProtectedRoute>
+    ),
+},
+{
+    path: "transactions/ledger",
+    element: (
+        <ProtectedRoute allowedRoles={["super_admin"]}>
+            <LedgerPage />
+        </ProtectedRoute>
+    ),
+},
 
                     
                 ],

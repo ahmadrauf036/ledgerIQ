@@ -15,7 +15,9 @@ import {
     Pencil,
     Power,
     Plus,
+    BookOpen,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
     account: Account;
@@ -43,7 +45,7 @@ export default function AccountTreeRow({
 }: Props) {
     const [expanded, setExpanded] = useState(true);
     const hasChildren = account.children && account.children.length > 0;
-
+const navigate = useNavigate()
     return (
         <>
             <div
@@ -123,6 +125,13 @@ export default function AccountTreeRow({
                             align="end"
                             className="bg-zinc-800 border-white/10 text-zinc-100"
                         >
+                            <DropdownMenuItem
+    className="focus:bg-zinc-700 cursor-pointer gap-2 text-xs"
+    onClick={() => navigate(`/transactions/ledger?account=${account.id}`)}
+>
+    <BookOpen className="h-3.5 w-3.5" />
+    View ledger
+</DropdownMenuItem>
                             <DropdownMenuItem
                                 className="focus:bg-zinc-700 cursor-pointer gap-2 text-xs"
                                 onClick={() => onAddChild(account)}
