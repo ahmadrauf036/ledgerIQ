@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.transactionsRoutes = void 0;
+const express_1 = require("express");
+const auth_middleware_1 = require("../auth/auth.middleware");
+const transactions_controller_1 = require("./transactions.controller");
+exports.transactionsRoutes = (0, express_1.Router)();
+exports.transactionsRoutes.use(auth_middleware_1.authenticate);
+exports.transactionsRoutes.use((0, auth_middleware_1.authorize)("super_admin"));
+exports.transactionsRoutes.get("/", transactions_controller_1.getEntries);
+exports.transactionsRoutes.get("/ledger/:account_id", transactions_controller_1.getLedger);
+exports.transactionsRoutes.get("/:id", transactions_controller_1.getEntry);
+exports.transactionsRoutes.post("/", transactions_controller_1.createEntry);
+exports.transactionsRoutes.patch("/:id", transactions_controller_1.updateEntry);
+exports.transactionsRoutes.post("/:id/post", transactions_controller_1.postEntry);
+exports.transactionsRoutes.delete("/:id", transactions_controller_1.deleteEntry);
