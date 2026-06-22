@@ -11,7 +11,12 @@ export default function ProtectedRoute({ children, allowedRoles }: Props) {
     const { user, role, loading } = useAuthStore();
 
     // 1. Wait for session check to complete first
-    if (loading) return <Spinner />;
+    if (loading)
+        return (
+            <div className="h-screen w-screen flex items-center justify-center">
+                <Spinner />
+            </div>
+        );
 
     // 2. Now check if logged in
     if (!user) return <Navigate to="/login" replace />;
