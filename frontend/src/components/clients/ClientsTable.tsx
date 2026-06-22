@@ -47,7 +47,7 @@ export default function ClientsTable({ clients, loading }: Props) {
     if (loading) {
         return (
             <div className="flex items-center justify-center py-20 text-zinc-500 text-sm">
-                <Spinner className="mr-1"/>
+                <Spinner className="mr-1" />
                 Loading clients...
             </div>
         );
@@ -151,15 +151,18 @@ export default function ClientsTable({ clients, loading }: Props) {
                                         </DropdownMenuItem>
 
                                         {/* Invite user */}
-                                        <DropdownMenuItem
-                                            className="focus:bg-zinc-700 cursor-pointer gap-2 text-xs"
-                                            onClick={() =>
-                                                setInviteClient(client)
-                                            }
-                                        >
-                                            <UserPlus className="h-3.5 w-3.5" />
-                                            Invite user
-                                        </DropdownMenuItem>
+
+                                        
+                                            <DropdownMenuItem
+                                                className="focus:bg-zinc-700 cursor-pointer gap-2 text-xs"
+                                                onClick={() =>
+                                                    setInviteClient(client)
+                                                }
+                                            >
+                                                <UserPlus className="h-3.5 w-3.5" />
+                                                Invite user
+                                            </DropdownMenuItem>
+                                        
 
                                         <DropdownMenuSeparator className="bg-white/10" />
 

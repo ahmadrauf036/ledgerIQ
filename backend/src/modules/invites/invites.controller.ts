@@ -7,6 +7,7 @@ import {
 } from "./invites.schema";
 import * as invitesService from "./invites.service";
 import { sendSuccess, sendError } from "../../lib/response";
+import { supabaseAdmin } from "../../lib/supabase";
 
 // POST /api/invites/send
 export const sendInviteController = async (req: AuthRequest, res: Response) => {
@@ -15,6 +16,12 @@ export const sendInviteController = async (req: AuthRequest, res: Response) => {
         return sendError(res, parsed.error.issues[0].message);
     }
     try {
+        const exists = (
+            await supabaseAdmin.auth.admin.listUsers()
+        ).data.users.find((u) => u.email == parsed.data.email);
+
+        if (exists) return sendError(res, "User already exists.");
+
         const result = await invitesService.sendInvite(
             parsed.data,
             req.user!.id,

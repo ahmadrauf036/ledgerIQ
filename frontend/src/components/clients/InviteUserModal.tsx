@@ -25,7 +25,7 @@ import {
     SelectValue,
 } from "../../components/ui/select";
 import { toast } from "sonner";
-import { Mail, ShieldCheck, BookOpen } from "lucide-react";
+import { Mail, ShieldCheck, BookOpen, TriangleAlert } from "lucide-react";
 
 interface Props {
     open: boolean;
@@ -42,6 +42,7 @@ export default function InviteUserModal({ open, onClose, client }: Props) {
         setValue,
         reset,
         formState: { errors },
+        watch,
     } = useForm<InviteUserForm>({
         resolver: zodResolver(inviteUserSchema),
         defaultValues: {
@@ -106,7 +107,15 @@ export default function InviteUserModal({ open, onClose, client }: Props) {
                             </p>
                         )}
                     </div>
-
+                    {client?.email &&
+                        watch("email") === client.email &&
+                        client.invite_status === "accepted" && (
+                            <p className="text-xs text-amber-400 flex items-start gap-1">
+                                <TriangleAlert className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                                This email already has an active account. Use a
+                                different email to invite a bookkeeper.
+                            </p>
+                        )}
                     {/* Role */}
                     <div className="space-y-1.5">
                         <Label className="text-zinc-300 text-xs">Role</Label>
@@ -125,7 +134,7 @@ export default function InviteUserModal({ open, onClose, client }: Props) {
                             <SelectContent className="bg-zinc-800 border-white/10 text-zinc-100">
                                 <SelectItem
                                     value="client_owner"
-                                    className="text-zinc-100 focus:bg-zinc-700"
+                                    className="text-zinc-100 focus:bg-gray-300 "
                                 >
                                     <div className="flex items-center gap-2 py-0.5">
                                         <ShieldCheck className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
@@ -141,7 +150,7 @@ export default function InviteUserModal({ open, onClose, client }: Props) {
                                 </SelectItem>
                                 <SelectItem
                                     value="bookkeeper"
-                                    className="text-zinc-100 focus:bg-zinc-700"
+                                    className="text-zinc-100 focus:bg-gray-300"
                                 >
                                     <div className="flex items-center gap-2 py-0.5">
                                         <BookOpen className="h-3.5 w-3.5 text-blue-400 shrink-0" />

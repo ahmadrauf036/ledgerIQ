@@ -37,6 +37,7 @@ exports.getCompanyInvitesController = exports.acceptInviteController = exports.v
 const invites_schema_1 = require("./invites.schema");
 const invitesService = __importStar(require("./invites.service"));
 const response_1 = require("../../lib/response");
+const supabase_1 = require("../../lib/supabase");
 // POST /api/invites/send
 const sendInviteController = async (req, res) => {
     const parsed = invites_schema_1.sendInviteSchema.safeParse(req.body);
@@ -44,6 +45,9 @@ const sendInviteController = async (req, res) => {
         return (0, response_1.sendError)(res, parsed.error.issues[0].message);
     }
     try {
+        const exists = (await supabase_1.supabaseAdmin.auth.admin.listUsers()).data.users.find((u) => u.email == parsed.data.email);
+        if (exists)
+            return (0, response_1.sendError)(res, "User already exists.");
         const result = await invitesService.sendInvite(parsed.data, req.user.id);
         return (0, response_1.sendSuccess)(res, result, 201);
     }

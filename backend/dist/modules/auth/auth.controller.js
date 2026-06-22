@@ -33,24 +33,10 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.forgotPasswordController = exports.deleteUserController = exports.inviteUserController = void 0;
+exports.forgotPasswordController = exports.deleteUserController = void 0;
 const auth_schema_1 = require("./auth.schema");
 const authService = __importStar(require("./auth.service"));
 const response_1 = require("../../lib/response");
-const inviteUserController = async (req, res) => {
-    const parsed = auth_schema_1.inviteUserSchema.safeParse(req.body);
-    if (!parsed.success) {
-        return (0, response_1.sendError)(res, parsed.error.issues[0].message);
-    }
-    try {
-        const user = await authService.inviteUser(parsed.data.email, parsed.data.role, parsed.data.company_id);
-        return (0, response_1.sendSuccess)(res, { user }, 201);
-    }
-    catch (err) {
-        return (0, response_1.sendError)(res, err.message);
-    }
-};
-exports.inviteUserController = inviteUserController;
 const deleteUserController = async (req, res) => {
     const parsed = auth_schema_1.deleteUserSchema.safeParse(req.body);
     if (!parsed.success) {

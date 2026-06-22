@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.inviteUser = exports.sendPasswordResetEmail = void 0;
+exports.deleteUser = exports.sendPasswordResetEmail = void 0;
 const supabase_1 = require("../../lib/supabase");
 const resend_1 = require("resend");
 const resend = new resend_1.Resend(process.env.RESEND_API_KEY);
@@ -81,61 +81,6 @@ const sendPasswordResetEmail = async (email) => {
     return { message: "Password reset email sent" };
 };
 exports.sendPasswordResetEmail = sendPasswordResetEmail;
-// ── Invite user ──────────────────────────────────
-const inviteUser = async (email, role, companyId) => {
-    const { data: existingUsers } = await supabase_1.supabaseAdmin.auth.admin.listUsers();
-    const existingUser = existingUsers?.users?.find((u) => u.email === email);
-    if (existingUser) {
-        const { data: linkData, error: linkError } = await supabase_1.supabaseAdmin.auth.admin.generateLink({
-            type: "invite",
-            email,
-            options: {
-                redirectTo: `${process.env.FRONTEND_URL}/set-password`,
-                data: { role, company_id: companyId },
-            },
-        });
-        if (linkError)
-            throw new Error(linkError.message);
-        await resend.emails.send({
-            from: `LedgerIQ <${process.env.RESEND_FROM_EMAIL}>`,
-            to: process.env.TEST_EMAIL ?? email,
-            subject: "Reminder: Activate your LedgerIQ account",
-            html: `
-                <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
-                    <h2 style="color: #10b981;">LedgerIQ</h2>
-                    <p>This is a reminder to activate your LedgerIQ account.</p>
-                    <a href="${linkData.properties.action_link}"
-                        style="display:inline-block;background:#10b981;color:white;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600;">
-                        Activate Account →
-                    </a>
-                    <p style="color:#999;font-size:11px;margin-top:24px;">
-                        This link expires in 24 hours.
-                    </p>
-                </div>
-            `,
-        });
-        return {
-            user: existingUser,
-            message: "Reminder email sent",
-        };
-    }
-    const { data, error } = await supabase_1.supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-        data: { role, company_id: companyId },
-        redirectTo: `${process.env.FRONTEND_URL}/set-password`,
-    });
-    if (error)
-        throw new Error(error.message);
-    if (data.user) {
-        await supabase_1.supabaseAdmin.auth.admin.updateUserById(data.user.id, {
-            app_metadata: { role, company_id: companyId },
-        });
-    }
-    return {
-        user: data.user,
-        message: "Invite email sent",
-    };
-};
-exports.inviteUser = inviteUser;
 // ── Delete user ──────────────────────────────────
 const deleteUser = async (userId) => {
     const { error } = await supabase_1.supabaseAdmin.auth.admin.deleteUser(userId);
