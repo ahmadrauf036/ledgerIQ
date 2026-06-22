@@ -10,7 +10,6 @@ import { sendSuccess, sendError } from "../../lib/response";
 
 // GET /api/accounts?company_id=uuid&type=asset
 export const getAccounts = async (req: AuthRequest, res: Response) => {
-    console.log("1");
 
     const parsed = getAccountsSchema.safeParse(req.query);
     if (!parsed.success) {
@@ -30,7 +29,6 @@ export const getAccounts = async (req: AuthRequest, res: Response) => {
 
 // GET /api/accounts/flat?company_id=uuid&type=asset
 export const getAccountsFlat = async (req: AuthRequest, res: Response) => {
-    console.log("2");
 
     const parsed = getAccountsSchema.safeParse(req.query);
     if (!parsed.success) {
@@ -47,7 +45,6 @@ export const getAccountsFlat = async (req: AuthRequest, res: Response) => {
 
 // GET /api/accounts/:id
 export const getAccount = async (req: AuthRequest, res: Response) => {
-    console.log("3");
 
     try {
         const account = await accountsService.getAccountById(req.params.id as string);

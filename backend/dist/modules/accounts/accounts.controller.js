@@ -39,7 +39,6 @@ const accountsService = __importStar(require("./accounts.service"));
 const response_1 = require("../../lib/response");
 // GET /api/accounts?company_id=uuid&type=asset
 const getAccounts = async (req, res) => {
-    console.log("1");
     const parsed = accounts_schema_1.getAccountsSchema.safeParse(req.query);
     if (!parsed.success) {
         return (0, response_1.sendError)(res, parsed.error.issues[0].message);
@@ -56,7 +55,6 @@ const getAccounts = async (req, res) => {
 exports.getAccounts = getAccounts;
 // GET /api/accounts/flat?company_id=uuid&type=asset
 const getAccountsFlat = async (req, res) => {
-    console.log("2");
     const parsed = accounts_schema_1.getAccountsSchema.safeParse(req.query);
     if (!parsed.success) {
         return (0, response_1.sendError)(res, parsed.error.issues[0].message);
@@ -73,7 +71,6 @@ const getAccountsFlat = async (req, res) => {
 exports.getAccountsFlat = getAccountsFlat;
 // GET /api/accounts/:id
 const getAccount = async (req, res) => {
-    console.log("3");
     try {
         const account = await accountsService.getAccountById(req.params.id);
         return (0, response_1.sendSuccess)(res, account);

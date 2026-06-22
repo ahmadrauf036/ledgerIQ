@@ -40,16 +40,19 @@ interface AccountsState {
 
 // Flatten tree into a list — used for parent dropdown
 const flattenTree = (accounts: Account[]): Account[] => {
-    const result: Account[] = [];
+    const result: Account[] = []
     const walk = (nodes: Account[]) => {
         for (const node of nodes) {
-            result.push(node);
-            if (node.children?.length) walk(node.children);
+            result.push({
+                ...node,
+                hasChildren: (node.children?.length ?? 0) > 0, // ← add this
+            })
+            if (node.children?.length) walk(node.children)
         }
-    };
-    walk(accounts);
-    return result;
-};
+    }
+    walk(accounts)
+    return result
+}
 
 export const useAccountsStore = create<AccountsState>((set) => ({
     accounts: [],

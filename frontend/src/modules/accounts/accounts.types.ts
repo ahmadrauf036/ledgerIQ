@@ -18,6 +18,7 @@ export interface Account {
     total_credit: number;
     balance: number;
     children: Account[];
+    hasChildren?: boolean;
 }
 
 export interface CreateAccountPayload {

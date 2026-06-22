@@ -25,12 +25,23 @@ const validateLineAccounts = async (companyId, lines) => {
     if (!accounts || accounts.length !== accountIds.length) {
         throw new Error("One or more accounts not found");
     }
+    // Check if any of these accounts have children (are parent accounts)
+    const { data: childAccounts, error: childError } = await supabase_1.supabaseAdmin
+        .from("accounts")
+        .select("parent_id")
+        .in("parent_id", accountIds);
+    if (childError)
+        throw new Error(childError.message);
+    const parentIdsWithChildren = new Set((childAccounts ?? []).map((c) => c.parent_id));
     for (const account of accounts) {
         if (account.company_id !== companyId) {
             throw new Error(`Account ${account.code} does not belong to this company`);
         }
         if (!account.is_active) {
             throw new Error(`Account ${account.code} — ${account.name} is inactive`);
+        }
+        if (parentIdsWithChildren.has(account.id)) {
+            throw new Error(`Cannot post to ${account.code} — ${account.name}. It is a header account with sub-accounts. Select a specific sub-account instead.`);
         }
     }
     return accounts;

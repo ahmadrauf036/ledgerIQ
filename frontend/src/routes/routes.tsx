@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import App from "../App"; 
+import App from "../App";
 import Login from "../pages/auth/Login";
 import { Dashboard } from "../pages/dashboard/Dashboard";
 import Unauthorized from "../pages/unauthorized/Unauthorized";
@@ -14,6 +14,10 @@ import PublicRoute from "./PublicRoute";
 import ChartOfAccountsPage from "../pages/accounts/ChartOfAccounts";
 import LedgerPage from "../pages/transactions/Ledger";
 import JournalEntriesPage from "../pages/transactions/JournalEntries";
+import ProfitLossPage from "../pages/reports/ProfitLoss";
+import BalanceSheetPage from "../pages/reports/BalanceSheet";
+import TrialBalancePage from "../pages/reports/TrialBalance";
+import Reports from "../pages/reports/Reports";
 
 export const router = createBrowserRouter([
     {
@@ -75,23 +79,49 @@ export const router = createBrowserRouter([
                         ),
                     },
                     {
-    path: "transactions",
-    element: (
-        <ProtectedRoute allowedRoles={["super_admin"]}>
-            <JournalEntriesPage />
-        </ProtectedRoute>
-    ),
-},
-{
-    path: "transactions/ledger",
-    element: (
-        <ProtectedRoute allowedRoles={["super_admin"]}>
-            <LedgerPage />
-        </ProtectedRoute>
-    ),
-},
-
-                    
+                        path: "transactions",
+                        element: (
+                            <ProtectedRoute allowedRoles={["super_admin"]}>
+                                <JournalEntriesPage />
+                            </ProtectedRoute>
+                        ),
+                    },
+                    {
+                        path: "transactions/ledger",
+                        element: (
+                            <ProtectedRoute allowedRoles={["super_admin"]}>
+                                <LedgerPage />
+                            </ProtectedRoute>
+                        ),
+                    },
+                    {
+                        path: "reports",
+                        element: (
+                            <ProtectedRoute allowedRoles={["super_admin"]}>
+                                <Reports />
+                            </ProtectedRoute>
+                        ),
+                        children: [
+                            {
+                                index: true,
+                                element: (
+                                    <Navigate to="trial-balance" replace />
+                                ),
+                            },
+                            {
+                                path: "trial-balance",
+                                element: <TrialBalancePage />,
+                            },
+                            {
+                                path: "profit-loss",
+                                element: <ProfitLossPage />,
+                            },
+                            {
+                                path: "balance-sheet",
+                                element: <BalanceSheetPage />,
+                            },
+                        ],
+                    },
                 ],
             },
             {

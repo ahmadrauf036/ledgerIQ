@@ -9,6 +9,7 @@ import { clientsRoutes } from "./modules/clients/clients.routes";
 import { invitesRoutes } from "./modules/invites/invites.routes";
 import { accountsRoutes } from "./modules/accounts/accounts.routes";
 import { transactionsRoutes } from "./modules/transactions/transactions.routes";
+import { reportsRoutes } from "./modules/reports/reports.routes";
 
 // Add this line with other routes
 const app = express();
@@ -33,6 +34,7 @@ app.use("/api/clients", clientsRoutes);
 app.use("/api/invites", invitesRoutes);
 app.use("/api/accounts", accountsRoutes);
 app.use("/api/transactions", transactionsRoutes);
+app.use("/api/reports", reportsRoutes);
 // Global error handler — must be last
 app.use(errorHandler);
 

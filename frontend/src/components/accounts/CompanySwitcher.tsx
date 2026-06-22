@@ -32,7 +32,7 @@ export default function CompanySwitcher({ value, onChange }: Props) {
                     <SelectItem
                         key={client.id}
                         value={client.id}
-                        className="text-zinc-100 focus:bg-zinc-700 text-sm"
+                        className="text-zinc-100  focus:bg-zinc-300 text-sm"
                     >
                         {client.company_name}
                     </SelectItem>

@@ -1,36 +1,36 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 
-import { Plus } from "lucide-react"
-import { toast } from "sonner"
-import type { JournalEntryWithLines } from "../../modules/transactions/transactions.types"
-import { useAccountsStore } from "../../modules/accounts/accounts.store"
-import { useTransactionsStore } from "../../modules/transactions/transactions.store"
-import { Label } from "../ui/label"
-import { Input } from "../ui/input"
-import EntryLineRow from "./EntryLineRow"
-import { Button } from "../ui/button"
-import BalanceIndicator from "./BalanceIndicator"
+import { Plus } from "lucide-react";
+import { toast } from "sonner";
+import type { JournalEntryWithLines } from "../../modules/transactions/transactions.types";
+import { useAccountsStore } from "../../modules/accounts/accounts.store";
+import { useTransactionsStore } from "../../modules/transactions/transactions.store";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
+import EntryLineRow from "./EntryLineRow";
+import { Button } from "../ui/button";
+import BalanceIndicator from "./BalanceIndicator";
 
 interface LineValue {
-    account_id: string
-    debit: number
-    credit: number
-    description?: string
+    account_id: string;
+    debit: number;
+    credit: number;
+    description?: string;
 }
 
 interface Props {
-    companyId: string
-    mode: "create" | "edit"
-    existingEntry?: JournalEntryWithLines | null
-    onSuccess: () => void
-    onCancel: () => void
+    companyId: string;
+    mode: "create" | "edit";
+    existingEntry?: JournalEntryWithLines | null;
+    onSuccess: () => void;
+    onCancel: () => void;
 }
 
 const emptyLine = (): LineValue => ({
     account_id: "",
     debit: 0,
     credit: 0,
-})
+});
 
 export default function JournalEntryForm({
     companyId,
@@ -39,16 +39,16 @@ export default function JournalEntryForm({
     onSuccess,
     onCancel,
 }: Props) {
-    const { flatAccounts, fetchAccounts } = useAccountsStore()
+    const { flatAccounts, fetchAccounts } = useAccountsStore();
     const { createEntry, updateEntry, postEntry, creating, updating, posting } =
-        useTransactionsStore()
+        useTransactionsStore();
 
     const [date, setDate] = useState(
-        existingEntry?.date ?? new Date().toISOString().split("T")[0]
-    )
+        existingEntry?.date ?? new Date().toISOString().split("T")[0],
+    );
     const [description, setDescription] = useState(
-        existingEntry?.description ?? ""
-    )
+        existingEntry?.description ?? "",
+    );
     const [lines, setLines] = useState<LineValue[]>(
         existingEntry?.lines?.length
             ? existingEntry.lines.map((l) => ({
@@ -57,35 +57,37 @@ export default function JournalEntryForm({
                   credit: l.credit,
                   description: l.description ?? undefined,
               }))
-            : [emptyLine(), emptyLine()]
-    )
+            : [emptyLine(), emptyLine()],
+    );
 
     useEffect(() => {
         if (flatAccounts.length === 0) {
-            fetchAccounts(companyId)
+            fetchAccounts(companyId);
         }
-    }, [companyId])
+    }, [companyId]);
 
-    const activeAccounts = flatAccounts.filter((a) => a.is_active)
-
-    const totalDebit = lines.reduce((sum, l) => sum + (l.debit || 0), 0)
-    const totalCredit = lines.reduce((sum, l) => sum + (l.credit || 0), 0)
-    const isBalanced = Math.abs(totalDebit - totalCredit) < 0.01
-    const allAccountsSelected = lines.every((l) => l.account_id)
-    const hasMinLines = lines.length >= 2
-    const canSave = isBalanced && allAccountsSelected && hasMinLines && totalDebit > 0
+    const activeAccounts = flatAccounts.filter(
+        (a) => a.is_active && !a.hasChildren,
+    );
+    const totalDebit = lines.reduce((sum, l) => sum + (l.debit || 0), 0);
+    const totalCredit = lines.reduce((sum, l) => sum + (l.credit || 0), 0);
+    const isBalanced = Math.abs(totalDebit - totalCredit) < 0.01;
+    const allAccountsSelected = lines.every((l) => l.account_id);
+    const hasMinLines = lines.length >= 2;
+    const canSave =
+        isBalanced && allAccountsSelected && hasMinLines && totalDebit > 0;
 
     const handleLineChange = (index: number, updated: LineValue) => {
-        setLines((prev) => prev.map((l, i) => (i === index ? updated : l)))
-    }
+        setLines((prev) => prev.map((l, i) => (i === index ? updated : l)));
+    };
 
     const handleAddLine = () => {
-        setLines((prev) => [...prev, emptyLine()])
-    }
+        setLines((prev) => [...prev, emptyLine()]);
+    };
 
     const handleRemoveLine = (index: number) => {
-        setLines((prev) => prev.filter((_, i) => i !== index))
-    }
+        setLines((prev) => prev.filter((_, i) => i !== index));
+    };
 
     const buildPayload = () => ({
         company_id: companyId,
@@ -97,18 +99,18 @@ export default function JournalEntryForm({
             debit: l.debit || 0,
             credit: l.credit || 0,
         })),
-    })
+    });
 
     const handleSaveDraft = async () => {
-        if (!canSave) return
+        if (!canSave) return;
 
         if (mode === "create") {
-            const { error } = await createEntry(buildPayload())
+            const { error } = await createEntry(buildPayload());
             if (error) {
-                toast.error(error)
-                return
+                toast.error(error);
+                return;
             }
-            toast.success("Entry saved as draft")
+            toast.success("Entry saved as draft");
         } else if (existingEntry) {
             const { error } = await updateEntry(existingEntry.id, {
                 date,
@@ -118,30 +120,30 @@ export default function JournalEntryForm({
                     debit: l.debit || 0,
                     credit: l.credit || 0,
                 })),
-            })
+            });
             if (error) {
-                toast.error(error)
-                return
+                toast.error(error);
+                return;
             }
-            toast.success("Entry updated")
+            toast.success("Entry updated");
         }
-        onSuccess()
-    }
+        onSuccess();
+    };
 
     const handleSaveAndPost = async () => {
-        if (!canSave) return
+        if (!canSave) return;
 
         if (mode === "create") {
             const { error } = await createEntry({
                 ...buildPayload(),
                 status: "posted",
-            })
+            });
             if (error) {
-                toast.error(error)
-                return
+                toast.error(error);
+                return;
             }
-            toast.success("Entry created and posted")
-            onSuccess()
+            toast.success("Entry created and posted");
+            onSuccess();
         } else if (existingEntry) {
             // First save changes, then post
             const { error: updateError } = await updateEntry(existingEntry.id, {
@@ -152,26 +154,25 @@ export default function JournalEntryForm({
                     debit: l.debit || 0,
                     credit: l.credit || 0,
                 })),
-            })
+            });
             if (updateError) {
-                toast.error(updateError)
-                return
+                toast.error(updateError);
+                return;
             }
-            const { error: postError } = await postEntry(existingEntry.id)
+            const { error: postError } = await postEntry(existingEntry.id);
             if (postError) {
-                toast.error(postError)
-                return
+                toast.error(postError);
+                return;
             }
-            toast.success("Entry updated and posted")
-            onSuccess()
+            toast.success("Entry updated and posted");
+            onSuccess();
         }
-    }
+    };
 
-    const isLoading = creating || updating || posting
+    const isLoading = creating || updating || posting;
 
     return (
         <div className="space-y-4">
-
             {/* Date + Description */}
             <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
@@ -201,8 +202,12 @@ export default function JournalEntryForm({
             <div className="space-y-2">
                 <div className="grid grid-cols-[1fr_120px_120px_32px] gap-2 px-0.5">
                     <Label className="text-zinc-500 text-xs">Account</Label>
-                    <Label className="text-zinc-500 text-xs text-right">Debit</Label>
-                    <Label className="text-zinc-500 text-xs text-right">Credit</Label>
+                    <Label className="text-zinc-500 text-xs text-right">
+                        Debit
+                    </Label>
+                    <Label className="text-zinc-500 text-xs text-right">
+                        Credit
+                    </Label>
                     <span />
                 </div>
 
@@ -231,7 +236,10 @@ export default function JournalEntryForm({
             </div>
 
             {/* Balance indicator */}
-            <BalanceIndicator totalDebit={totalDebit} totalCredit={totalCredit} />
+            <BalanceIndicator
+                totalDebit={totalDebit}
+                totalCredit={totalCredit}
+            />
 
             {/* Actions */}
             <div className="flex items-center justify-end gap-2 pt-2">
@@ -261,7 +269,6 @@ export default function JournalEntryForm({
                     {isLoading ? "Posting..." : "Save & post"}
                 </Button>
             </div>
-
         </div>
-    )
+    );
 }
