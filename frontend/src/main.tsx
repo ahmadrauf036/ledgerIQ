@@ -8,11 +8,10 @@ import "./index.css";
 import { Toaster } from "sonner";
 function Root() {
     const setSession = useAuthStore((s) => s.setSession);
-
     useEffect(() => {
         // Check if a session already exists on app load
         supabase.auth.getSession().then(({ data: { session } }) => {
-            if (process.env.ENV === "DEVELOPMENT")
+            if (import.meta.env.VITE_ENV === "DEVELOPMENT")
                 console.log("Session on load:", session); // remove later
             setSession(session);
         });
