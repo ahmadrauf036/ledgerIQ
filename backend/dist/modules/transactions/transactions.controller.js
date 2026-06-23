@@ -86,7 +86,7 @@ const updateEntry = async (req, res) => {
         return (0, response_1.sendError)(res, parsed.error.issues[0].message);
     }
     try {
-        const entry = await transactionsService.updateEntry(req.params.id, parsed.data);
+        const entry = await transactionsService.updateEntry(req.params.id, parsed.data, req.user.id);
         return (0, response_1.sendSuccess)(res, entry);
     }
     catch (err) {
@@ -97,7 +97,7 @@ exports.updateEntry = updateEntry;
 // POST /api/transactions/:id/post
 const postEntry = async (req, res) => {
     try {
-        const entry = await transactionsService.postEntry(req.params.id);
+        const entry = await transactionsService.postEntry(req.params.id, req.user.id);
         return (0, response_1.sendSuccess)(res, entry);
     }
     catch (err) {
@@ -108,7 +108,7 @@ exports.postEntry = postEntry;
 // DELETE /api/transactions/:id
 const deleteEntry = async (req, res) => {
     try {
-        const result = await transactionsService.deleteEntry(req.params.id);
+        const result = await transactionsService.deleteEntry(req.params.id, req.user.id);
         return (0, response_1.sendSuccess)(res, result);
     }
     catch (err) {

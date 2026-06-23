@@ -87,7 +87,7 @@ const createAccount = async (req, res) => {
         return (0, response_1.sendError)(res, parsed.error.issues[0].message);
     }
     try {
-        const account = await accountsService.createAccount(parsed.data);
+        const account = await accountsService.createAccount(parsed.data, req.user.id);
         return (0, response_1.sendSuccess)(res, account, 201);
     }
     catch (err) {
@@ -113,7 +113,7 @@ exports.updateAccount = updateAccount;
 // DELETE /api/accounts/:id
 const deactivateAccount = async (req, res) => {
     try {
-        const account = await accountsService.deactivateAccount(req.params.id);
+        const account = await accountsService.deactivateAccount(req.params.id, req.user.id);
         return (0, response_1.sendSuccess)(res, account);
     }
     catch (err) {

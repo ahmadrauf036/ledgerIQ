@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivateClient = exports.updateClient = exports.createClient = exports.getClientById = exports.getAllClients = void 0;
 const supabase_1 = require("../../lib/supabase");
 const accounts_seed_1 = require("../accounts/accounts.seed");
+const audit_service_1 = require("../audit/audit.service");
 const invites_service_1 = require("../invites/invites.service");
 // ── Get all clients ──────────────────────────────
 const getAllClients = async () => {
@@ -126,6 +127,14 @@ const createClient = async (body, invitedBy) => {
             company_id: company.id,
             full_name, // ← pass it
         }, invitedBy);
+        (0, audit_service_1.logAction)({
+            company_id: company.id,
+            user_id: invitedBy,
+            action: "CREATE",
+            table_name: "companies",
+            record_id: company.id,
+            new_data: { name: company.name, email: company.email },
+        });
         return {
             company,
             invite,
@@ -139,9 +148,13 @@ const createClient = async (body, invitedBy) => {
     }
 };
 exports.createClient = createClient;
-;
 // ── Update client ────────────────────────────────
 const updateClient = async (companyId, updates) => {
+    const { data: oldData } = await supabase_1.supabaseAdmin
+        .from("companies")
+        .select("*")
+        .eq("id", companyId)
+        .single();
     const { data, error } = await supabase_1.supabaseAdmin
         .from("companies")
         .update({
@@ -165,6 +178,15 @@ const updateClient = async (companyId, updates) => {
         .single();
     if (error)
         throw new Error(error.message);
+    (0, audit_service_1.logAction)({
+        company_id: companyId,
+        user_id: null, // pass actual user id from controller if available
+        action: "UPDATE",
+        table_name: "companies",
+        record_id: companyId,
+        old_data: oldData,
+        new_data: data,
+    });
     return data;
 };
 exports.updateClient = updateClient;
@@ -181,6 +203,13 @@ const deactivateClient = async (companyId) => {
         .single();
     if (error)
         throw new Error(error.message);
+    (0, audit_service_1.logAction)({
+        company_id: companyId,
+        user_id: null,
+        action: "DEACTIVATE",
+        table_name: "companies",
+        record_id: companyId,
+    });
     return data;
 };
 exports.deactivateClient = deactivateClient;

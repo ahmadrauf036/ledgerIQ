@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.seedAccounts = exports.deactivateAccount = exports.updateAccount = exports.createAccount = exports.getAccountById = exports.getAccountsTree = exports.getAccounts = void 0;
 const supabase_1 = require("../../lib/supabase");
+const audit_service_1 = require("../audit/audit.service");
 const accounts_seed_1 = require("./accounts.seed");
 // ── Build account tree ───────────────────────────
 const buildTree = (accounts, parentId = null, depth = 0) => {
@@ -61,7 +62,7 @@ const getAccountById = async (accountId) => {
 };
 exports.getAccountById = getAccountById;
 // ── Create account ───────────────────────────────
-const createAccount = async (body) => {
+const createAccount = async (body, createdBy) => {
     const { company_id, code, name, type, parent_id, description } = body;
     // Check code is unique within company
     const { data: existing } = await supabase_1.supabaseAdmin
@@ -98,6 +99,14 @@ const createAccount = async (body) => {
         .single();
     if (error)
         throw new Error(error.message);
+    (0, audit_service_1.logAction)({
+        company_id: company_id,
+        user_id: createdBy,
+        action: "CREATE",
+        table_name: "accounts",
+        record_id: data.id,
+        new_data: { code, name, type },
+    });
     return data;
 };
 exports.createAccount = createAccount;
@@ -145,7 +154,7 @@ const updateAccount = async (accountId, body) => {
 };
 exports.updateAccount = updateAccount;
 // ── Deactivate account ───────────────────────────
-const deactivateAccount = async (accountId) => {
+const deactivateAccount = async (accountId, deactivatedBy) => {
     // Check if account has children
     const { data: children } = await supabase_1.supabaseAdmin
         .from("accounts")
@@ -175,6 +184,13 @@ const deactivateAccount = async (accountId) => {
         .single();
     if (error)
         throw new Error(error.message);
+    (0, audit_service_1.logAction)({
+        company_id: data.company_id,
+        user_id: deactivatedBy,
+        action: "DEACTIVATE",
+        table_name: "accounts",
+        record_id: accountId,
+    });
     return data;
 };
 exports.deactivateAccount = deactivateAccount;

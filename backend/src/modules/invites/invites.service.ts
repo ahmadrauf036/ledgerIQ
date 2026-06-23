@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "../../lib/supabase";
 import { Resend } from "resend";
 import type { SendInviteBody, AcceptInviteBody } from "./invites.types";
+import { logAction } from "../audit/audit.service";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -144,7 +145,14 @@ export const sendInvite = async (body: SendInviteBody, invitedBy: string) => {
         role,
         body.full_name ?? "",
     );
-
+    logAction({
+        company_id,
+        user_id: invitedBy,
+        action: "INVITE",
+        table_name: "invites",
+        record_id: invite.id,
+        new_data: { email, role },
+    });
     return {
         invite,
         message: "Invite sent successfully",
@@ -249,7 +257,14 @@ export const acceptInvite = async (body: AcceptInviteBody) => {
         .from("invites")
         .update({ status: "accepted" })
         .eq("id", invite.id);
-
+    logAction({
+        company_id: invite.company_id,
+        user_id: userId,
+        action: "CREATE",
+        table_name: "users",
+        record_id: userId,
+        new_data: { email: invite.email, role: invite.role },
+    });
     return {
         message: "Account activated successfully",
         company_name,

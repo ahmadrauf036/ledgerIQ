@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "../../lib/supabase";
 import { seedDefaultAccounts } from "../accounts/accounts.seed";
+import { logAction } from "../audit/audit.service";
 import { sendInvite } from "../invites/invites.service";
 import type { CreateClientBody } from "./clients.types";
 
@@ -100,7 +101,10 @@ export const getClientById = async (companyId: string) => {
 };
 
 // ── Create client ────────────────────────────────
-export const createClient = async (body: CreateClientBody, invitedBy: string) => {
+export const createClient = async (
+    body: CreateClientBody,
+    invitedBy: string,
+) => {
     const {
         company_name,
         full_name,
@@ -147,7 +151,14 @@ export const createClient = async (body: CreateClientBody, invitedBy: string) =>
             },
             invitedBy,
         );
-
+        logAction({
+            company_id: company.id,
+            user_id: invitedBy,
+            action: "CREATE",
+            table_name: "companies",
+            record_id: company.id,
+            new_data: { name: company.name, email: company.email },
+        });
         return {
             company,
             invite,
@@ -158,7 +169,7 @@ export const createClient = async (body: CreateClientBody, invitedBy: string) =>
         await supabaseAdmin.from("companies").delete().eq("id", company.id);
         throw new Error((err as Error).message);
     }
-};;
+};
 
 // ── Update client ────────────────────────────────
 export const updateClient = async (
@@ -173,6 +184,11 @@ export const updateClient = async (
         is_active: boolean;
     }>,
 ) => {
+     const { data: oldData } = await supabaseAdmin
+         .from("companies")
+         .select("*")
+         .eq("id", companyId)
+         .single();
     const { data, error } = await supabaseAdmin
         .from("companies")
         .update({
@@ -196,6 +212,15 @@ export const updateClient = async (
         .single();
 
     if (error) throw new Error(error.message);
+     logAction({
+         company_id: companyId,
+         user_id: null, // pass actual user id from controller if available
+         action: "UPDATE",
+         table_name: "companies",
+         record_id: companyId,
+         old_data: oldData,
+         new_data: data,
+     });
     return data;
 };
 
@@ -212,5 +237,13 @@ export const deactivateClient = async (companyId: string) => {
         .single();
 
     if (error) throw new Error(error.message);
+
+    logAction({
+        company_id: companyId,
+        user_id: null,
+        action: "DEACTIVATE",
+        table_name: "companies",
+        record_id: companyId,
+    });
     return data;
 };

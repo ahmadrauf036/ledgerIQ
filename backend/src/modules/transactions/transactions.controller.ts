@@ -63,6 +63,7 @@ export const updateEntry = async (req: AuthRequest, res: Response) => {
         const entry = await transactionsService.updateEntry(
             req.params.id as string,
             parsed.data,
+            req.user!.id, // ← added
         );
         return sendSuccess(res, entry);
     } catch (err) {
@@ -73,7 +74,10 @@ export const updateEntry = async (req: AuthRequest, res: Response) => {
 // POST /api/transactions/:id/post
 export const postEntry = async (req: AuthRequest, res: Response) => {
     try {
-        const entry = await transactionsService.postEntry(req.params.id as string);
+        const entry = await transactionsService.postEntry(
+            req.params.id as string,
+            req.user!.id, // ← added
+        );
         return sendSuccess(res, entry);
     } catch (err) {
         return sendError(res, (err as Error).message);
@@ -83,7 +87,10 @@ export const postEntry = async (req: AuthRequest, res: Response) => {
 // DELETE /api/transactions/:id
 export const deleteEntry = async (req: AuthRequest, res: Response) => {
     try {
-        const result = await transactionsService.deleteEntry(req.params.id as string);
+        const result = await transactionsService.deleteEntry(
+            req.params.id as string,
+            req.user!.id, // ← added
+        );
         return sendSuccess(res, result);
     } catch (err) {
         return sendError(res, (err as Error).message);

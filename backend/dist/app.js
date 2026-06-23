@@ -14,6 +14,9 @@ const invites_routes_1 = require("./modules/invites/invites.routes");
 const accounts_routes_1 = require("./modules/accounts/accounts.routes");
 const transactions_routes_1 = require("./modules/transactions/transactions.routes");
 const reports_routes_1 = require("./modules/reports/reports.routes");
+const audit_routes_1 = require("./modules/audit/audit.routes");
+const folders_routes_1 = require("./modules/files/folders.routes");
+const files_routes_1 = require("./modules/files/files.routes");
 // Add this line with other routes
 const app = (0, express_1.default)();
 app.use((0, helmet_1.default)());
@@ -33,6 +36,9 @@ app.use("/api/invites", invites_routes_1.invitesRoutes);
 app.use("/api/accounts", accounts_routes_1.accountsRoutes);
 app.use("/api/transactions", transactions_routes_1.transactionsRoutes);
 app.use("/api/reports", reports_routes_1.reportsRoutes);
+app.use("/api/audit", audit_routes_1.auditRoutes);
+app.use("/api/files/folders", folders_routes_1.foldersRoutes);
+app.use("/api/files", files_routes_1.filesRoutes);
 // Global error handler — must be last
 app.use(error_middleware_1.errorHandler);
 exports.default = app;

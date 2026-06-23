@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.auditRoutes = void 0;
+const express_1 = require("express");
+const auth_middleware_1 = require("../auth/auth.middleware");
+const audit_controller_1 = require("./audit.controller");
+exports.auditRoutes = (0, express_1.Router)();
+exports.auditRoutes.use(auth_middleware_1.authenticate);
+exports.auditRoutes.use((0, auth_middleware_1.authorize)("super_admin"));
+exports.auditRoutes.get("/", audit_controller_1.getAuditLogs);
+exports.auditRoutes.get("/filters", audit_controller_1.getFilterOptions);
+exports.auditRoutes.get("/record/:table_name/:record_id", audit_controller_1.getRecordHistory);

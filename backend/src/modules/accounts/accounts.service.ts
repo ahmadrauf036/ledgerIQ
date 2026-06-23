@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "../../lib/supabase";
+import { logAction } from "../audit/audit.service";
 import { seedDefaultAccounts } from "./accounts.seed";
 import type {
     CreateAccountBody,
@@ -75,7 +76,7 @@ export const getAccountById = async (accountId: string) => {
 };
 
 // ── Create account ───────────────────────────────
-export const createAccount = async (body: CreateAccountBody) => {
+export const createAccount = async (body: CreateAccountBody, createdBy:string) => {
     const { company_id, code, name, type, parent_id, description } = body;
 
     // Check code is unique within company
@@ -117,6 +118,14 @@ export const createAccount = async (body: CreateAccountBody) => {
         .single();
 
     if (error) throw new Error(error.message);
+    logAction({
+        company_id: company_id,
+        user_id: createdBy,
+        action: "CREATE",
+        table_name: "accounts",
+        record_id: data.id,
+        new_data: { code, name, type },
+    });
     return data;
 };
 
@@ -170,7 +179,7 @@ export const updateAccount = async (
 };
 
 // ── Deactivate account ───────────────────────────
-export const deactivateAccount = async (accountId: string) => {
+export const deactivateAccount = async (accountId: string,deactivatedBy:string) => {
     // Check if account has children
     const { data: children } = await supabaseAdmin
         .from("accounts")
@@ -206,6 +215,13 @@ export const deactivateAccount = async (accountId: string) => {
         .single();
 
     if (error) throw new Error(error.message);
+    logAction({
+        company_id: data.company_id,
+        user_id: deactivatedBy,
+        action: "DEACTIVATE",
+        table_name: "accounts",
+        record_id: accountId,
+    });
     return data;
 };
 

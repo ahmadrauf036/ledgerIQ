@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getLedger = exports.deleteEntry = exports.postEntry = exports.updateEntry = exports.createEntry = exports.getEntryById = exports.getEntries = void 0;
 const supabase_1 = require("../../lib/supabase");
+const audit_service_1 = require("../audit/audit.service");
 // ── Generate sequential entry number per company ──
 const generateEntryNumber = async (companyId) => {
     const { count, error } = await supabase_1.supabaseAdmin
@@ -13,7 +14,7 @@ const generateEntryNumber = async (companyId) => {
     const nextNumber = (count ?? 0) + 1;
     return `JE-${String(nextNumber).padStart(3, "0")}`;
 };
-// ── Validate all accounts belong to company + are active ──
+// ── Validate all accounts belong to company + are active + not parent ──
 const validateLineAccounts = async (companyId, lines) => {
     const accountIds = [...new Set(lines.map((l) => l.account_id))];
     const { data: accounts, error } = await supabase_1.supabaseAdmin
@@ -25,7 +26,6 @@ const validateLineAccounts = async (companyId, lines) => {
     if (!accounts || accounts.length !== accountIds.length) {
         throw new Error("One or more accounts not found");
     }
-    // Check if any of these accounts have children (are parent accounts)
     const { data: childAccounts, error: childError } = await supabase_1.supabaseAdmin
         .from("accounts")
         .select("parent_id")
@@ -105,11 +105,8 @@ exports.getEntryById = getEntryById;
 // ── Create entry ──────────────────────────────────
 const createEntry = async (body, createdBy) => {
     const { company_id, date, description, status, lines } = body;
-    // Validate accounts
     await validateLineAccounts(company_id, lines);
-    // Generate entry number
     const entryNumber = await generateEntryNumber(company_id);
-    // Create journal entry header
     const { data: entry, error: entryError } = await supabase_1.supabaseAdmin
         .from("journal_entries")
         .insert({
@@ -125,7 +122,6 @@ const createEntry = async (body, createdBy) => {
         .single();
     if (entryError)
         throw new Error(entryError.message);
-    // Create entry lines
     const linesPayload = lines.map((line) => ({
         entry_id: entry.id,
         account_id: line.account_id,
@@ -137,15 +133,30 @@ const createEntry = async (body, createdBy) => {
         .from("entry_lines")
         .insert(linesPayload);
     if (linesError) {
-        // Rollback — delete the entry header if lines fail
         await supabase_1.supabaseAdmin.from("journal_entries").delete().eq("id", entry.id);
         throw new Error(linesError.message);
     }
-    return await (0, exports.getEntryById)(entry.id);
+    const result = await (0, exports.getEntryById)(entry.id);
+    // ── Audit log ──
+    (0, audit_service_1.logAction)({
+        company_id,
+        user_id: createdBy,
+        action: "CREATE",
+        table_name: "journal_entries",
+        record_id: entry.id,
+        new_data: {
+            entry_number: entryNumber,
+            date,
+            description,
+            status,
+            lines,
+        },
+    });
+    return result;
 };
 exports.createEntry = createEntry;
 // ── Update entry (draft only) ────────────────────
-const updateEntry = async (entryId, body) => {
+const updateEntry = async (entryId, body, updatedBy) => {
     const { data: entry, error: fetchError } = await supabase_1.supabaseAdmin
         .from("journal_entries")
         .select("*")
@@ -156,7 +167,6 @@ const updateEntry = async (entryId, body) => {
     if (entry.status !== "draft") {
         throw new Error("Only draft entries can be edited");
     }
-    // Update header fields
     const { error: updateError } = await supabase_1.supabaseAdmin
         .from("journal_entries")
         .update({
@@ -169,17 +179,14 @@ const updateEntry = async (entryId, body) => {
         .eq("id", entryId);
     if (updateError)
         throw new Error(updateError.message);
-    // If lines provided, replace all lines
     if (body.lines) {
         await validateLineAccounts(entry.company_id, body.lines);
-        // Delete old lines
         const { error: deleteError } = await supabase_1.supabaseAdmin
             .from("entry_lines")
             .delete()
             .eq("entry_id", entryId);
         if (deleteError)
             throw new Error(deleteError.message);
-        // Insert new lines
         const linesPayload = body.lines.map((line) => ({
             entry_id: entryId,
             account_id: line.account_id,
@@ -193,11 +200,22 @@ const updateEntry = async (entryId, body) => {
         if (insertError)
             throw new Error(insertError.message);
     }
-    return await (0, exports.getEntryById)(entryId);
+    const result = await (0, exports.getEntryById)(entryId);
+    // ── Audit log ──
+    (0, audit_service_1.logAction)({
+        company_id: entry.company_id,
+        user_id: updatedBy,
+        action: "UPDATE",
+        table_name: "journal_entries",
+        record_id: entryId,
+        old_data: entry,
+        new_data: body,
+    });
+    return result;
 };
 exports.updateEntry = updateEntry;
 // ── Post a draft entry ───────────────────────────
-const postEntry = async (entryId) => {
+const postEntry = async (entryId, postedBy) => {
     const { data: entry, error: fetchError } = await supabase_1.supabaseAdmin
         .from("journal_entries")
         .select("*")
@@ -208,7 +226,6 @@ const postEntry = async (entryId) => {
     if (entry.status !== "draft") {
         throw new Error("Only draft entries can be posted");
     }
-    // Verify entry has at least 2 lines and is balanced
     const { data: lines, error: linesError } = await supabase_1.supabaseAdmin
         .from("entry_lines")
         .select("debit, credit")
@@ -235,14 +252,24 @@ const postEntry = async (entryId) => {
         .single();
     if (error)
         throw new Error(error.message);
+    // ── Audit log ──
+    (0, audit_service_1.logAction)({
+        company_id: entry.company_id,
+        user_id: postedBy,
+        action: "POST",
+        table_name: "journal_entries",
+        record_id: entryId,
+        old_data: { status: "draft" },
+        new_data: { status: "posted", posted_at: data.posted_at },
+    });
     return data;
 };
 exports.postEntry = postEntry;
 // ── Delete entry (draft only) ────────────────────
-const deleteEntry = async (entryId) => {
+const deleteEntry = async (entryId, deletedBy) => {
     const { data: entry, error: fetchError } = await supabase_1.supabaseAdmin
         .from("journal_entries")
-        .select("status")
+        .select("*")
         .eq("id", entryId)
         .single();
     if (fetchError)
@@ -250,19 +277,31 @@ const deleteEntry = async (entryId) => {
     if (entry.status !== "draft") {
         throw new Error("Only draft entries can be deleted");
     }
-    // entry_lines will cascade delete automatically (FK ON DELETE CASCADE)
+    // Get lines before deletion for the audit trail
+    const { data: lines } = await supabase_1.supabaseAdmin
+        .from("entry_lines")
+        .select("*")
+        .eq("entry_id", entryId);
     const { error } = await supabase_1.supabaseAdmin
         .from("journal_entries")
         .delete()
         .eq("id", entryId);
     if (error)
         throw new Error(error.message);
+    // ── Audit log ──
+    (0, audit_service_1.logAction)({
+        company_id: entry.company_id,
+        user_id: deletedBy,
+        action: "DELETE",
+        table_name: "journal_entries",
+        record_id: entryId,
+        old_data: { entry, lines },
+    });
     return { message: "Entry deleted successfully" };
 };
 exports.deleteEntry = deleteEntry;
 // ── Get ledger for a specific account ────────────
 const getLedger = async (accountId) => {
-    // Get account info
     const { data: account, error: accountError } = await supabase_1.supabaseAdmin
         .from("accounts")
         .select("id, code, name, type, company_id")
@@ -270,7 +309,6 @@ const getLedger = async (accountId) => {
         .single();
     if (accountError)
         throw new Error("Account not found");
-    // Get all posted entry lines for this account, joined with entry info
     const { data: lines, error: linesError } = await supabase_1.supabaseAdmin
         .from("entry_lines")
         .select(`
@@ -291,7 +329,6 @@ const getLedger = async (accountId) => {
         .order("date", { referencedTable: "journal_entries", ascending: true });
     if (linesError)
         throw new Error(linesError.message);
-    // Calculate running balance
     let runningBalance = 0;
     const ledgerRows = (lines ?? []).map((line) => {
         const debit = Number(line.debit);

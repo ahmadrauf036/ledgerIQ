@@ -9,8 +9,9 @@ import {
     Users,
     BookOpen,
     NotebookText,
-    
     File,
+    History,
+    FolderOpen,
 } from "lucide-react";
 import {
     Sidebar,
@@ -65,6 +66,18 @@ export function AppSidebar() {
             title: "Reports",
             url: "/reports",
             icon: File,
+            roles: ["super_admin"],
+        },
+        {
+            title: "Activity log",
+            url: "/audit",
+            icon: History,
+            roles: ["super_admin"],
+        },
+        {
+            title: "Files",
+            url: "/files",
+            icon: FolderOpen,
             roles: ["super_admin"],
         },
     ];

@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCompanyInvites = exports.acceptInvite = exports.validateInvite = exports.sendInvite = void 0;
 const supabase_1 = require("../../lib/supabase");
 const resend_1 = require("resend");
+const audit_service_1 = require("../audit/audit.service");
 const resend = new resend_1.Resend(process.env.RESEND_API_KEY);
 // ── Send invite email via Resend ─────────────────
 const sendInviteEmail = async (email, companyName, token, role, fullName = "") => {
@@ -123,6 +124,14 @@ const sendInvite = async (body, invitedBy) => {
     if (inviteError)
         throw new Error(inviteError.message);
     await sendInviteEmail(email, company.name, invite.token, role, body.full_name ?? "");
+    (0, audit_service_1.logAction)({
+        company_id,
+        user_id: invitedBy,
+        action: "INVITE",
+        table_name: "invites",
+        record_id: invite.id,
+        new_data: { email, role },
+    });
     return {
         invite,
         message: "Invite sent successfully",
@@ -213,6 +222,14 @@ const acceptInvite = async (body) => {
         .from("invites")
         .update({ status: "accepted" })
         .eq("id", invite.id);
+    (0, audit_service_1.logAction)({
+        company_id: invite.company_id,
+        user_id: userId,
+        action: "CREATE",
+        table_name: "users",
+        record_id: userId,
+        new_data: { email: invite.email, role: invite.role },
+    });
     return {
         message: "Account activated successfully",
         company_name,

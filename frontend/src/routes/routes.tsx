@@ -18,6 +18,8 @@ import ProfitLossPage from "../pages/reports/ProfitLoss";
 import BalanceSheetPage from "../pages/reports/BalanceSheet";
 import TrialBalancePage from "../pages/reports/TrialBalance";
 import Reports from "../pages/reports/Reports";
+import AuditLogPage from "../pages/audit/AuditLog";
+import FilesPage from "../pages/files/Files";
 
 export const router = createBrowserRouter([
     {
@@ -121,6 +123,22 @@ export const router = createBrowserRouter([
                                 element: <BalanceSheetPage />,
                             },
                         ],
+                    },
+                    {
+                        path: "audit",
+                        element: (
+                            <ProtectedRoute allowedRoles={["super_admin"]}>
+                                <AuditLogPage />
+                            </ProtectedRoute>
+                        ),
+                    },
+                    {
+                        path: "files",
+                        element: (
+                            <ProtectedRoute allowedRoles={["super_admin"]}>
+                                <FilesPage />
+                            </ProtectedRoute>
+                        ),
                     },
                 ],
             },
