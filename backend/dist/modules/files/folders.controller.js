@@ -67,14 +67,18 @@ const createFolder = async (req, res) => {
     }
 };
 exports.createFolder = createFolder;
-// PATCH /api/files/folders/:id
+// PATCH /api/files/folders/:id (in folders.controller.ts)
 const updateFolder = async (req, res) => {
-    console.log(req.body);
     const parsed = files_schema_1.updateFolderSchema.safeParse(req.body);
     if (!parsed.success) {
         return (0, response_1.sendError)(res, parsed.error.issues[0].message);
     }
     try {
+        const existing = await foldersService.getFolderById(req.params.id);
+        if (req.user.role !== "super_admin" &&
+            existing.company_id !== req.user.company_id) {
+            return (0, response_1.sendError)(res, "You do not have access to this folder", 403);
+        }
         const folder = await foldersService.updateFolder(req.params.id, parsed.data, req.user.id);
         return (0, response_1.sendSuccess)(res, folder);
     }
@@ -86,6 +90,11 @@ exports.updateFolder = updateFolder;
 // DELETE /api/files/folders/:id
 const deleteFolder = async (req, res) => {
     try {
+        const existing = await foldersService.getFolderById(req.params.id);
+        if (req.user.role !== "super_admin" &&
+            existing.company_id !== req.user.company_id) {
+            return (0, response_1.sendError)(res, "You do not have access to this folder", 403);
+        }
         const result = await foldersService.deleteFolder(req.params.id, req.user.id);
         return (0, response_1.sendSuccess)(res, result);
     }

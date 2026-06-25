@@ -9,19 +9,50 @@ import {
     deactivateAccount,
     seedAccounts,
 } from "./accounts.controller";
+import { enforceCompanyScope } from "../auth/scope.middleware";
 
 export const accountsRoutes = Router();
 
-// All routes require authentication
 accountsRoutes.use(authenticate);
 
-// Super admin only
-accountsRoutes.use(authorize("super_admin"));
+// Read — all three roles, scoped to own company
+accountsRoutes.get(
+    "/",
+    authorize("super_admin", "client_owner", "bookkeeper"),
+    enforceCompanyScope,
+    getAccounts,
+);
+accountsRoutes.get(
+    "/flat",
+    authorize("super_admin", "client_owner", "bookkeeper"),
+    enforceCompanyScope,
+    getAccountsFlat,
+);
+accountsRoutes.get(
+    "/:id",
+    authorize("super_admin", "client_owner", "bookkeeper"),
+    getAccount,
+);
 
-accountsRoutes.get("/", getAccounts);
-accountsRoutes.get("/flat", getAccountsFlat);
-accountsRoutes.get("/:id", getAccount);
-accountsRoutes.post("/", createAccount);
-accountsRoutes.patch("/:id", updateAccount);
-accountsRoutes.delete("/:id", deactivateAccount);
-accountsRoutes.post("/seed/:company_id", seedAccounts);
+// Write — super_admin + bookkeeper only (client_owner is read-only)
+accountsRoutes.post(
+    "/",
+    authorize("super_admin", "bookkeeper"),
+    enforceCompanyScope,
+    createAccount,
+);
+accountsRoutes.patch(
+    "/:id",
+    authorize("super_admin", "bookkeeper"),
+    updateAccount,
+);
+accountsRoutes.delete(
+    "/:id",
+    authorize("super_admin", "bookkeeper"),
+    deactivateAccount,
+);
+accountsRoutes.post(
+    "/seed/:company_id",
+    authorize("super_admin"), // seeding only happens on client creation by ACCA
+    seedAccounts,
+);

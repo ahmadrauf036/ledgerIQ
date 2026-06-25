@@ -1,5 +1,5 @@
-import type { JournalEntry } from "../../modules/transactions/transactions.types"
-import EntryStatusBadge from "./EntryStatusBadge"
+import type { JournalEntry } from "../../modules/transactions/transactions.types";
+import EntryStatusBadge from "./EntryStatusBadge";
 import {
     Table,
     TableBody,
@@ -7,23 +7,24 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "../ui/table"
+} from "../ui/table";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "../ui/dropdown-menu"
-import { Button } from "../ui/button"
-import { MoreHorizontal, Eye, Pencil, Send, Trash2 } from "lucide-react"
+} from "../ui/dropdown-menu";
+import { Button } from "../ui/button";
+import { MoreHorizontal, Eye, Pencil, Send, Trash2 } from "lucide-react";
 
 interface Props {
-    entries: JournalEntry[]
-    loading: boolean
-    onView: (entry: JournalEntry) => void
-    onEdit: (entry: JournalEntry) => void
-    onPost: (entry: JournalEntry) => void
-    onDelete: (entry: JournalEntry) => void
+    entries: JournalEntry[];
+    loading: boolean;
+    readOnly?: boolean; // ← added
+    onView: (entry: JournalEntry) => void;
+    onEdit: (entry: JournalEntry) => void;
+    onPost: (entry: JournalEntry) => void;
+    onDelete: (entry: JournalEntry) => void;
 }
 
 function formatDate(date: string): string {
@@ -31,12 +32,13 @@ function formatDate(date: string): string {
         day: "numeric",
         month: "short",
         year: "numeric",
-    })
+    });
 }
 
 export default function JournalEntriesTable({
     entries,
     loading,
+    readOnly = false,
     onView,
     onEdit,
     onPost,
@@ -47,7 +49,7 @@ export default function JournalEntriesTable({
             <div className="flex items-center justify-center py-20 text-zinc-500 text-sm">
                 Loading entries...
             </div>
-        )
+        );
     }
 
     if (entries.length === 0) {
@@ -58,7 +60,7 @@ export default function JournalEntriesTable({
                     Click "New entry" to record your first transaction
                 </p>
             </div>
-        )
+        );
     }
 
     return (
@@ -92,58 +94,75 @@ export default function JournalEntriesTable({
                             <EntryStatusBadge status={entry.status} />
                         </TableCell>
                         <TableCell onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-7 w-7 text-zinc-400 hover:text-zinc-100 hover:bg-white/5"
-                                    >
-                                        <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent
-                                    align="end"
-                                    className="bg-zinc-800 border-white/10 text-zinc-100"
+                            {readOnly ? (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 text-zinc-400 hover:text-zinc-100 hover:bg-white/5"
+                                    onClick={() => onView(entry)}
                                 >
-                                    <DropdownMenuItem
-                                        className="focus:bg-zinc-700 cursor-pointer gap-2 text-xs"
-                                        onClick={() => onView(entry)}
+                                    <Eye className="h-4 w-4" />
+                                </Button>
+                            ) : (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-7 w-7 text-zinc-400 hover:text-zinc-100 hover:bg-white/5"
+                                        >
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent
+                                        align="end"
+                                        className="bg-zinc-800 border-white/10 text-zinc-100"
                                     >
-                                        <Eye className="h-3.5 w-3.5" />
-                                        View details
-                                    </DropdownMenuItem>
-                                    {entry.status === "draft" && (
-                                        <>
-                                            <DropdownMenuItem
-                                                className="focus:bg-zinc-700 cursor-pointer gap-2 text-xs"
-                                                onClick={() => onEdit(entry)}
-                                            >
-                                                <Pencil className="h-3.5 w-3.5" />
-                                                Edit
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                className="focus:bg-emerald-500/10 text-emerald-400 cursor-pointer gap-2 text-xs"
-                                                onClick={() => onPost(entry)}
-                                            >
-                                                <Send className="h-3.5 w-3.5" />
-                                                Post entry
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                className="focus:bg-red-500/10 text-red-400 cursor-pointer gap-2 text-xs"
-                                                onClick={() => onDelete(entry)}
-                                            >
-                                                <Trash2 className="h-3.5 w-3.5" />
-                                                Delete
-                                            </DropdownMenuItem>
-                                        </>
-                                    )}
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                                        <DropdownMenuItem
+                                            className="focus:bg-zinc-700 cursor-pointer gap-2 text-xs"
+                                            onClick={() => onView(entry)}
+                                        >
+                                            <Eye className="h-3.5 w-3.5" />
+                                            View details
+                                        </DropdownMenuItem>
+                                        {entry.status === "draft" && (
+                                            <>
+                                                <DropdownMenuItem
+                                                    className="focus:bg-zinc-700 cursor-pointer gap-2 text-xs"
+                                                    onClick={() =>
+                                                        onEdit(entry)
+                                                    }
+                                                >
+                                                    <Pencil className="h-3.5 w-3.5" />
+                                                    Edit
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    className="focus:bg-emerald-500/10 text-emerald-400 cursor-pointer gap-2 text-xs"
+                                                    onClick={() =>
+                                                        onPost(entry)
+                                                    }
+                                                >
+                                                    <Send className="h-3.5 w-3.5" />
+                                                    Post entry
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    className="focus:bg-red-500/10 text-red-400 cursor-pointer gap-2 text-xs"
+                                                    onClick={() =>
+                                                        onDelete(entry)
+                                                    }
+                                                >
+                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                    Delete
+                                                </DropdownMenuItem>
+                                            </>
+                                        )}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            )}
                         </TableCell>
                     </TableRow>
                 ))}
             </TableBody>
         </Table>
-    )
+    );
 }

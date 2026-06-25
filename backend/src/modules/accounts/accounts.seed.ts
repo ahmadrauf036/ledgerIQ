@@ -319,9 +319,9 @@ export const seedDefaultAccounts = async (companyId: string) => {
         codeToId.set(account.code, data.id);
     }
 
-    console.log(
-        `✅ Seeded ${DEFAULT_ACCOUNTS.length} default accounts for company ${companyId}`,
-    );
+    // console.log(
+    //     `✅ Seeded ${DEFAULT_ACCOUNTS.length} default accounts for company ${companyId}`,
+    // );
 
     return { count: DEFAULT_ACCOUNTS.length };
 };

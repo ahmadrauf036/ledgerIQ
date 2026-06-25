@@ -76,9 +76,14 @@ const uploadFile = async (req, res) => {
     }
 };
 exports.uploadFile = uploadFile;
-// GET /api/files/:id/preview
+// GET /api/files/:id/preview (in files.controller.ts)
 const getPreviewUrl = async (req, res) => {
     try {
+        const file = await filesService.getFileById(req.params.id);
+        if (req.user.role !== "super_admin" &&
+            file.company_id !== req.user.company_id) {
+            return (0, response_1.sendError)(res, "You do not have access to this file", 403);
+        }
         const result = await filesService.getPreviewUrl(req.params.id);
         return (0, response_1.sendSuccess)(res, result);
     }
@@ -90,6 +95,11 @@ exports.getPreviewUrl = getPreviewUrl;
 // GET /api/files/:id/download
 const getDownloadUrl = async (req, res) => {
     try {
+        const file = await filesService.getFileById(req.params.id);
+        if (req.user.role !== "super_admin" &&
+            file.company_id !== req.user.company_id) {
+            return (0, response_1.sendError)(res, "You do not have access to this file", 403);
+        }
         const result = await filesService.getDownloadUrl(req.params.id);
         return (0, response_1.sendSuccess)(res, result);
     }
@@ -102,7 +112,7 @@ exports.getDownloadUrl = getDownloadUrl;
 const deleteFile = async (req, res) => {
     try {
         const isAdmin = req.user.role === "super_admin";
-        const result = await filesService.deleteFile(req.params.id, req.user.id, isAdmin);
+        const result = await filesService.deleteFile(req.params.id, req.user.id, isAdmin, req.user.company_id);
         return (0, response_1.sendSuccess)(res, result);
     }
     catch (err) {

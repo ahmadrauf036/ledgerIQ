@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authenticate, authorize } from "../auth/auth.middleware";
+import { enforceCompanyScope } from "../auth/scope.middleware";
 import {
     getFolders,
     createFolder,
@@ -10,9 +11,26 @@ import {
 export const foldersRoutes = Router();
 
 foldersRoutes.use(authenticate);
-foldersRoutes.use(authorize("super_admin")); // expand later for client_owner/bookkeeper
 
-foldersRoutes.get("/", getFolders);
-foldersRoutes.post("/", createFolder);
-foldersRoutes.patch("/:id", updateFolder);
-foldersRoutes.delete("/:id", deleteFolder);
+foldersRoutes.get(
+    "/",
+    authorize("super_admin", "client_owner", "bookkeeper"),
+    enforceCompanyScope,
+    getFolders,
+);
+foldersRoutes.post(
+    "/",
+    authorize("super_admin", "client_owner", "bookkeeper"),
+    enforceCompanyScope,
+    createFolder,
+);
+foldersRoutes.patch(
+    "/:id",
+    authorize("super_admin", "client_owner", "bookkeeper"),
+    updateFolder,
+);
+foldersRoutes.delete(
+    "/:id",
+    authorize("super_admin", "client_owner", "bookkeeper"),
+    deleteFolder,
+);

@@ -73,6 +73,11 @@ exports.getAccountsFlat = getAccountsFlat;
 const getAccount = async (req, res) => {
     try {
         const account = await accountsService.getAccountById(req.params.id);
+        // Ownership check for non-super_admin roles
+        if (req.user.role !== "super_admin" &&
+            account.company_id !== req.user.company_id) {
+            return (0, response_1.sendError)(res, "You do not have access to this account", 403);
+        }
         return (0, response_1.sendSuccess)(res, account);
     }
     catch (err) {
@@ -102,6 +107,11 @@ const updateAccount = async (req, res) => {
         return (0, response_1.sendError)(res, parsed.error.issues[0].message);
     }
     try {
+        const existing = await accountsService.getAccountById(req.params.id);
+        if (req.user.role !== "super_admin" &&
+            existing.company_id !== req.user.company_id) {
+            return (0, response_1.sendError)(res, "You do not have access to this account", 403);
+        }
         const account = await accountsService.updateAccount(req.params.id, parsed.data);
         return (0, response_1.sendSuccess)(res, account);
     }
@@ -113,7 +123,12 @@ exports.updateAccount = updateAccount;
 // DELETE /api/accounts/:id
 const deactivateAccount = async (req, res) => {
     try {
-        const account = await accountsService.deactivateAccount(req.params.id, req.user.id);
+        const existing = await accountsService.getAccountById(req.params.id);
+        if (req.user.role !== "super_admin" &&
+            existing.company_id !== req.user.company_id) {
+            return (0, response_1.sendError)(res, "You do not have access to this account", 403);
+        }
+        const account = await accountsService.deactivateAccount(req.params.id, req.user.company_id);
         return (0, response_1.sendSuccess)(res, account);
     }
     catch (err) {

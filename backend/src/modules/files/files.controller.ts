@@ -52,10 +52,21 @@ export const uploadFile = async (req: AuthRequest, res: Response) => {
     }
 };
 
-// GET /api/files/:id/preview
+// GET /api/files/:id/preview (in files.controller.ts)
 export const getPreviewUrl = async (req: AuthRequest, res: Response) => {
     try {
-        const result = await filesService.getPreviewUrl(req.params.id as string);
+        const file = await filesService.getFileById(req.params.id as string);
+
+        if (
+            req.user!.role !== "super_admin" &&
+            file.company_id !== req.user!.company_id
+        ) {
+            return sendError(res, "You do not have access to this file", 403);
+        }
+
+        const result = await filesService.getPreviewUrl(
+            req.params.id as string,
+        );
         return sendSuccess(res, result);
     } catch (err) {
         return sendError(res, (err as Error).message);
@@ -65,7 +76,18 @@ export const getPreviewUrl = async (req: AuthRequest, res: Response) => {
 // GET /api/files/:id/download
 export const getDownloadUrl = async (req: AuthRequest, res: Response) => {
     try {
-        const result = await filesService.getDownloadUrl(req.params.id as string);
+        const file = await filesService.getFileById(req.params.id as string);
+
+        if (
+            req.user!.role !== "super_admin" &&
+            file.company_id !== req.user!.company_id
+        ) {
+            return sendError(res, "You do not have access to this file", 403);
+        }
+
+        const result = await filesService.getDownloadUrl(
+            req.params.id as string,
+        );
         return sendSuccess(res, result);
     } catch (err) {
         return sendError(res, (err as Error).message);
@@ -80,6 +102,7 @@ export const deleteFile = async (req: AuthRequest, res: Response) => {
             req.params.id as string,
             req.user!.id,
             isAdmin,
+            req.user!.company_id, // ← pass it through
         );
         return sendSuccess(res, result);
     } catch (err) {

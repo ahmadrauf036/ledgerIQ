@@ -8,14 +8,13 @@ import type { LoginForm } from "../../modules/auth/login.schema";
 import { BookText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { RoleRedirect } from "../../routes/roleRedirect";
 
 export default function Login() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const signIn = useAuthStore((s) => s.signIn);
-    const navigate = useNavigate();
     const {
         register,
         handleSubmit,
@@ -29,12 +28,11 @@ export default function Login() {
         setLoading(true);
         setError(null);
         const { error } = await signIn(data.email, data.password);
-        console.log("Login error:", error); // remove later
         if (error) {
             toast.error(error || "Login failed");
             setError("Invalid email or password");
         } else {
-            navigate("/dashboard");
+            RoleRedirect();
         }
         setLoading(false);
     };
@@ -112,7 +110,14 @@ export default function Login() {
                                 type="submit"
                                 className="w-full mt-2 bg-[#1D9E75]"
                             >
-                                {loading ? <><Spinner/>Signing in...</> : "Sign in"}
+                                {loading ? (
+                                    <>
+                                        <Spinner />
+                                        Signing in...
+                                    </>
+                                ) : (
+                                    "Sign in"
+                                )}
                             </Button>
                         </form>
                     </CardContent>

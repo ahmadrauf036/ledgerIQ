@@ -8,7 +8,6 @@ import {
     BookText,
     Users,
     BookOpen,
-    NotebookText,
     File,
     History,
     FolderOpen,
@@ -38,6 +37,7 @@ export function AppSidebar() {
     };
 
     const menuItems = [
+        // super_admin items
         {
             title: "Dashboard",
             url: "/dashboard",
@@ -59,7 +59,7 @@ export function AppSidebar() {
         {
             title: "Journal entries",
             url: "/transactions",
-            icon: NotebookText,
+            icon: BookText,
             roles: ["super_admin"],
         },
         {
@@ -69,16 +69,48 @@ export function AppSidebar() {
             roles: ["super_admin"],
         },
         {
+            title: "Files",
+            url: "/files",
+            icon: FolderOpen,
+            roles: ["super_admin"],
+        },
+        {
             title: "Activity log",
             url: "/audit",
             icon: History,
             roles: ["super_admin"],
         },
+
+        // client_owner + bookkeeper items
+        {
+            title: "Dashboard",
+            url: "/my-dashboard",
+            icon: LayoutDashboard,
+            roles: ["client_owner", "bookkeeper"],
+        },
+        {
+            title: "Chart of accounts",
+            url: "/my-accounts",
+            icon: BookOpen,
+            roles: ["client_owner", "bookkeeper"],
+        },
+        {
+            title: "Journal entries",
+            url: "/my-transactions",
+            icon: BookText,
+            roles: ["client_owner", "bookkeeper"],
+        },
+        {
+            title: "Reports",
+            url: "/my-reports",
+            icon: File,
+            roles: ["client_owner"],
+        },
         {
             title: "Files",
-            url: "/files",
+            url: "/my-files",
             icon: FolderOpen,
-            roles: ["super_admin"],
+            roles: ["client_owner", "bookkeeper"],
         },
     ];
 

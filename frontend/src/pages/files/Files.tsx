@@ -12,8 +12,10 @@ import DeleteFileDialog from "../../components/files/DeleteFileDialog";
 import FilePreviewModal from "../../components/files/FilePreviewModal";
 import { Button } from "../../components/ui/button";
 import { Plus, FolderPlus, ChevronRight, FolderOpen } from "lucide-react";
-
-export default function FilesPage() {
+interface Props {
+    hideCompanySwitcher?: boolean;
+}
+export default function FilesPage({ hideCompanySwitcher = false }: Props) {
     const [searchParams, setSearchParams] = useSearchParams();
     const companyId = searchParams.get("company");
     const folderId = searchParams.get("folder");
@@ -111,13 +113,15 @@ export default function FilesPage() {
             </div>
 
             {/* Company switcher */}
-            <div className="flex items-center gap-3">
-                <span className="text-xs text-zinc-500">Client:</span>
-                <CompanySwitcher
-                    value={companyId}
-                    onChange={handleCompanyChange}
-                />
-            </div>
+            {!hideCompanySwitcher && (
+                <div className="flex items-center gap-3">
+                    <span className="text-xs text-zinc-500">Client:</span>
+                    <CompanySwitcher
+                        value={companyId}
+                        onChange={handleCompanyChange}
+                    />
+                </div>
+            )}
 
             {!companyId ? (
                 <div className="flex flex-col items-center justify-center py-24 gap-3 rounded-lg border border-white/10 bg-zinc-900">

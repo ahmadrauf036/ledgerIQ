@@ -15,6 +15,7 @@ const authenticate = async (req, res, next) => {
         id: user.id,
         email: user.email,
         role: user.app_metadata?.role,
+        company_id: user.app_metadata?.company_id ?? null, // ← added
     };
     next();
 };

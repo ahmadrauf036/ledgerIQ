@@ -200,14 +200,19 @@ export const deleteFile = async (
     fileId: string,
     deletedBy: string,
     isAdmin: boolean,
+    callerCompanyId: string | null,
 ) => {
     const file = await getFileById(fileId);
 
-    // Permission check — non-admins can only delete their own uploads
+    // Company scope check first
+    if (!isAdmin && file.company_id !== callerCompanyId) {
+        throw new Error("You do not have access to this file");
+    }
+
+    // Then ownership check (only own uploads, unless admin)
     if (!isAdmin && file.uploaded_by !== deletedBy) {
         throw new Error("You can only delete files you uploaded");
     }
-
     // Remove from storage
     const { error: storageError } = await supabaseAdmin.storage
         .from(BUCKET)

@@ -11,9 +11,9 @@ function Root() {
     useEffect(() => {
         // Check if a session already exists on app load
         supabase.auth.getSession().then(({ data: { session } }) => {
-            if (import.meta.env.VITE_ENV === "DEVELOPMENT") {
-                console.log("Session on load:", session);
-            } // remove later
+            // if (import.meta.env.VITE_ENV === "DEVELOPMENT") {
+            //     console.log("Session on load:", session);
+            // } // remove later
             setSession(session);
         });
 
@@ -21,9 +21,9 @@ function Root() {
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((_event, session) => {
-            if (import.meta.env.VITE_ENV == "DEVELOPMENT") {
-                console.log("Auth state changed:", _event, session);
-            } // remove later
+            // if (import.meta.env.VITE_ENV == "DEVELOPMENT") {
+            //     console.log("Auth state changed:", _event, session);
+            // } // remove later
             setSession(session);
         });
 

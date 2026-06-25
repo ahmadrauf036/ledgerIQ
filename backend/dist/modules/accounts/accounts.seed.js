@@ -291,7 +291,9 @@ const seedDefaultAccounts = async (companyId) => {
             throw new Error(`Failed to seed account ${account.code}: ${error.message}`);
         codeToId.set(account.code, data.id);
     }
-    console.log(`✅ Seeded ${DEFAULT_ACCOUNTS.length} default accounts for company ${companyId}`);
+    // console.log(
+    //     `✅ Seeded ${DEFAULT_ACCOUNTS.length} default accounts for company ${companyId}`,
+    // );
     return { count: DEFAULT_ACCOUNTS.length };
 };
 exports.seedDefaultAccounts = seedDefaultAccounts;

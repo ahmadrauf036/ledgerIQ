@@ -30,6 +30,14 @@ export const getEntries = async (req: AuthRequest, res: Response) => {
 export const getEntry = async (req: AuthRequest, res: Response) => {
     try {
         const entry = await transactionsService.getEntryById(req.params.id as string);
+
+        if (
+            req.user!.role !== "super_admin" &&
+            entry.company_id !== req.user!.company_id
+        ) {
+            return sendError(res, "You do not have access to this entry", 403);
+        }
+
         return sendSuccess(res, entry);
     } catch (err) {
         return sendError(res, (err as Error).message, 404);
@@ -60,10 +68,19 @@ export const updateEntry = async (req: AuthRequest, res: Response) => {
         return sendError(res, parsed.error.issues[0].message);
     }
     try {
+        const existing = await transactionsService.getEntryById(req.params.id as string);
+
+        if (
+            req.user!.role !== "super_admin" &&
+            existing.company_id !== req.user!.company_id
+        ) {
+            return sendError(res, "You do not have access to this entry", 403);
+        }
+
         const entry = await transactionsService.updateEntry(
             req.params.id as string,
             parsed.data,
-            req.user!.id, // ← added
+            req.user!.id,
         );
         return sendSuccess(res, entry);
     } catch (err) {
@@ -71,12 +88,22 @@ export const updateEntry = async (req: AuthRequest, res: Response) => {
     }
 };
 
+
 // POST /api/transactions/:id/post
 export const postEntry = async (req: AuthRequest, res: Response) => {
     try {
+        const existing = await transactionsService.getEntryById(req.params.id as string);
+
+        if (
+            req.user!.role !== "super_admin" &&
+            existing.company_id !== req.user!.company_id
+        ) {
+            return sendError(res, "You do not have access to this entry", 403);
+        }
+
         const entry = await transactionsService.postEntry(
             req.params.id as string,
-            req.user!.id, // ← added
+            req.user!.id,
         );
         return sendSuccess(res, entry);
     } catch (err) {
@@ -87,9 +114,18 @@ export const postEntry = async (req: AuthRequest, res: Response) => {
 // DELETE /api/transactions/:id
 export const deleteEntry = async (req: AuthRequest, res: Response) => {
     try {
+        const existing = await transactionsService.getEntryById(req.params.id as string);
+
+        if (
+            req.user!.role !== "super_admin" &&
+            existing.company_id !== req.user!.company_id
+        ) {
+            return sendError(res, "You do not have access to this entry", 403);
+        }
+
         const result = await transactionsService.deleteEntry(
             req.params.id as string,
-            req.user!.id, // ← added
+            req.user!.id,
         );
         return sendSuccess(res, result);
     } catch (err) {
@@ -97,12 +133,21 @@ export const deleteEntry = async (req: AuthRequest, res: Response) => {
     }
 };
 
+
 // GET /api/transactions/ledger/:account_id
 export const getLedger = async (req: AuthRequest, res: Response) => {
     try {
         const ledger = await transactionsService.getLedger(
             req.params.account_id as string,
         );
+
+        if (
+            req.user!.role !== "super_admin" &&
+            ledger.account.company_id !== req.user!.company_id
+        ) {
+            return sendError(res, "You do not have access to this ledger", 403);
+        }
+
         return sendSuccess(res, ledger);
     } catch (err) {
         return sendError(res, (err as Error).message);

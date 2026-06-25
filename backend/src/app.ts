@@ -13,6 +13,8 @@ import { reportsRoutes } from "./modules/reports/reports.routes";
 import { auditRoutes } from "./modules/audit/audit.routes";
 import { foldersRoutes } from "./modules/files/folders.routes";
 import { filesRoutes } from "./modules/files/files.routes";
+import { authenticate } from "./modules/auth/auth.middleware";
+import { enforceCompanyScope } from "./modules/auth/scope.middleware";
 
 // Add this line with other routes
 const app = express();

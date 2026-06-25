@@ -163,9 +163,13 @@ const getDownloadUrl = async (fileId) => {
 };
 exports.getDownloadUrl = getDownloadUrl;
 // ── Delete file ────────────────────────────────────
-const deleteFile = async (fileId, deletedBy, isAdmin) => {
+const deleteFile = async (fileId, deletedBy, isAdmin, callerCompanyId) => {
     const file = await (0, exports.getFileById)(fileId);
-    // Permission check — non-admins can only delete their own uploads
+    // Company scope check first
+    if (!isAdmin && file.company_id !== callerCompanyId) {
+        throw new Error("You do not have access to this file");
+    }
+    // Then ownership check (only own uploads, unless admin)
     if (!isAdmin && file.uploaded_by !== deletedBy) {
         throw new Error("You can only delete files you uploaded");
     }

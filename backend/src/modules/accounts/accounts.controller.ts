@@ -47,6 +47,19 @@ export const getAccount = async (req: AuthRequest, res: Response) => {
         const account = await accountsService.getAccountById(
             req.params.id as string,
         );
+
+        // Ownership check for non-super_admin roles
+        if (
+            req.user!.role !== "super_admin" &&
+            account.company_id !== req.user!.company_id
+        ) {
+            return sendError(
+                res,
+                "You do not have access to this account",
+                403,
+            );
+        }
+
         return sendSuccess(res, account);
     } catch (err) {
         return sendError(res, (err as Error).message, 404);
@@ -77,6 +90,21 @@ export const updateAccount = async (req: AuthRequest, res: Response) => {
         return sendError(res, parsed.error.issues[0].message);
     }
     try {
+        const existing = await accountsService.getAccountById(
+            req.params.id as string,
+        );
+
+        if (
+            req.user!.role !== "super_admin" &&
+            existing.company_id !== req.user!.company_id
+        ) {
+            return sendError(
+                res,
+                "You do not have access to this account",
+                403,
+            );
+        }
+
         const account = await accountsService.updateAccount(
             req.params.id as string,
             parsed.data,
@@ -90,9 +118,24 @@ export const updateAccount = async (req: AuthRequest, res: Response) => {
 // DELETE /api/accounts/:id
 export const deactivateAccount = async (req: AuthRequest, res: Response) => {
     try {
+        const existing = await accountsService.getAccountById(
+            req.params.id as string,
+        );
+
+        if (
+            req.user!.role !== "super_admin" &&
+            existing.company_id !== req.user!.company_id
+        ) {
+            return sendError(
+                res,
+                "You do not have access to this account",
+                403,
+            );
+        }
+
         const account = await accountsService.deactivateAccount(
             req.params.id as string,
-            req.user!.id,
+            req.user!.company_id,
         );
         return sendSuccess(res, account);
     } catch (err) {

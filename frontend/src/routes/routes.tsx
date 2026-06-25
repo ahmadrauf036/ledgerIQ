@@ -20,6 +20,12 @@ import TrialBalancePage from "../pages/reports/TrialBalance";
 import Reports from "../pages/reports/Reports";
 import AuditLogPage from "../pages/audit/AuditLog";
 import FilesPage from "../pages/files/Files";
+import MyDashboard from "../pages/dashboard/MyDashboard";
+import MyAccountsPage from "../pages/my/MyAccounts";
+import MyTransactionsPage from "../pages/my/MyTransactions";
+import MyReportsPage from "../pages/my/MyReports";
+import MyFilesPage from "../pages/my/MyFiles";
+import MyLedgerPage from "../pages/my/MyLedger";
 
 export const router = createBrowserRouter([
     {
@@ -137,6 +143,64 @@ export const router = createBrowserRouter([
                         element: (
                             <ProtectedRoute allowedRoles={["super_admin"]}>
                                 <FilesPage />
+                            </ProtectedRoute>
+                        ),
+                    },
+                    {
+                        path: "my-dashboard",
+                        element: (
+                            <ProtectedRoute
+                                allowedRoles={["client_owner", "bookkeeper"]}
+                            >
+                                <MyDashboard />
+                            </ProtectedRoute>
+                        ),
+                    },
+                    {
+                        path: "my-accounts",
+                        element: (
+                            <ProtectedRoute
+                                allowedRoles={["client_owner", "bookkeeper"]}
+                            >
+                                <MyAccountsPage />
+                            </ProtectedRoute>
+                        ),
+                    },
+                    {
+                        path: "my-transactions",
+                        element: (
+                            <ProtectedRoute
+                                allowedRoles={["client_owner", "bookkeeper"]}
+                            >
+                                <MyTransactionsPage />
+                            </ProtectedRoute>
+                        ),
+                    },
+                    {
+                        path: "my-reports",
+                        element: (
+                            <ProtectedRoute allowedRoles={["client_owner"]}>
+                                <MyReportsPage />
+                            </ProtectedRoute>
+                        ),
+                    },
+                    {
+                        path: "my-files",
+                        element: (
+                            <ProtectedRoute
+                                allowedRoles={["client_owner", "bookkeeper"]}
+                            >
+                                <MyFilesPage />
+                            </ProtectedRoute>
+                        ),
+                    },
+                    {
+                        path: "my-ledger",
+                        element: (
+                            <ProtectedRoute
+                                allowedRoles={["client_owner", "bookkeeper"]}
+                            >
+                                <MyLedgerPage />
                             </ProtectedRoute>
                         ),
                     },

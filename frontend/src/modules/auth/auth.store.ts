@@ -9,8 +9,9 @@ interface AuthState {
     user: User | null;
     session: Session | null;
     role: UserRole | null;
-    loading: boolean; // app-level loading (is session ready?)
-    signingIn: boolean; // form-level loading (is login request in progress?)
+    companyId: string | null; // ← added
+    loading: boolean;
+    signingIn: boolean;
     signIn: (
         email: string,
         password: string,
@@ -23,11 +24,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     user: null,
     session: null,
     role: null,
-    loading: true, // true until setSession is called on app start
-    signingIn: false, // true only during login request
+    companyId: null,
+    loading: true,
+    signingIn: false,
 
     signIn: async (email, password) => {
-        set({ signingIn: true }); // ← start loading
+        set({ signingIn: true });
 
         const { data, error } = await supabase.auth.signInWithPassword({
             email,
@@ -36,37 +38,47 @@ export const useAuthStore = create<AuthState>((set) => ({
 
         if (error) {
             toast.error(error.message || "Login failed");
-            set({ signingIn: false }); // ← stop loading on error
+            set({ signingIn: false });
             return { error: error.message };
         }
 
         const role = (data.user?.app_metadata?.role as UserRole) ?? null;
+        const companyId =
+            (data.user?.app_metadata?.company_id as string) ?? null;
 
         set({
             user: data.user,
             session: data.session,
             role,
-            signingIn: false, // ← stop loading on success
+            companyId,
+            signingIn: false,
         });
-        toast.success("Logged in successfully");
 
         return { error: null };
     },
 
     signOut: async () => {
-        set({ loading: true }); // ← show loading while signing out
+        set({ loading: true });
         await supabase.auth.signOut();
-        set({ user: null, session: null, role: null, loading: false });
-        toast.success("Logged out successfully");
+        set({
+            user: null,
+            session: null,
+            role: null,
+            companyId: null,
+            loading: false,
+        });
     },
 
     setSession: (session) => {
         const role = (session?.user?.app_metadata?.role as UserRole) ?? null;
+        const companyId =
+            (session?.user?.app_metadata?.company_id as string) ?? null;
         set({
             session,
             user: session?.user ?? null,
             role,
-            loading: false, // ← app session check is done
+            companyId,
+            loading: false,
         });
     },
 }));

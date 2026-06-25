@@ -22,7 +22,9 @@ import { useNavigate } from "react-router-dom";
 interface Props {
     account: Account;
     depth: number;
+    readOnly?: boolean; // ← added
     onEdit: (account: Account) => void;
+    ledgerBasePath?: string;
     onDeactivate: (account: Account) => void;
     onAddChild: (parentAccount: Account) => void;
 }
@@ -39,13 +41,15 @@ function formatBalance(balance: number): string {
 export default function AccountTreeRow({
     account,
     depth,
+    readOnly = false,
+    ledgerBasePath = "/transactions/ledger",
     onEdit,
     onDeactivate,
     onAddChild,
 }: Props) {
     const [expanded, setExpanded] = useState(true);
     const hasChildren = account.children && account.children.length > 0;
-const navigate = useNavigate()
+    const navigate = useNavigate();
     return (
         <>
             <div
@@ -111,52 +115,70 @@ const navigate = useNavigate()
                     </span>
 
                     {/* Actions */}
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 text-zinc-500 hover:text-zinc-100 hover:bg-white/5"
-                            >
-                                <MoreHorizontal className="h-3.5 w-3.5" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                            align="end"
-                            className="bg-zinc-800 border-white/10 text-zinc-100"
+                    {readOnly ? (
+                        // Read-only users (client_owner) — just a ledger view icon, nothing else
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-zinc-500 hover:text-zinc-100 hover:bg-white/5"
+                            onClick={() =>
+                                navigate(`/my-ledger?account=${account.id}`)
+                            }
                         >
-                            <DropdownMenuItem
-    className="focus:bg-zinc-700 cursor-pointer gap-2 text-xs"
-    onClick={() => navigate(`/transactions/ledger?account=${account.id}`)}
->
-    <BookOpen className="h-3.5 w-3.5" />
-    View ledger
-</DropdownMenuItem>
-                            <DropdownMenuItem
-                                className="focus:bg-zinc-700 cursor-pointer gap-2 text-xs"
-                                onClick={() => onAddChild(account)}
-                            >
-                                <Plus className="h-3.5 w-3.5" />
-                                Add sub-account
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                className="focus:bg-zinc-700 cursor-pointer gap-2 text-xs"
-                                onClick={() => onEdit(account)}
-                            >
-                                <Pencil className="h-3.5 w-3.5" />
-                                Edit
-                            </DropdownMenuItem>
-                            {account.is_active && (
-                                <DropdownMenuItem
-                                    className="focus:bg-red-500/10 text-red-400 cursor-pointer gap-2 text-xs"
-                                    onClick={() => onDeactivate(account)}
+                            <BookOpen className="h-3.5 w-3.5" />
+                        </Button>
+                    ) : (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-zinc-500 hover:text-zinc-100 hover:bg-white/5"
                                 >
-                                    <Power className="h-3.5 w-3.5" />
-                                    Deactivate
+                                    <MoreHorizontal className="h-3.5 w-3.5" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                align="end"
+                                className="bg-zinc-800 border-white/10 text-zinc-100"
+                            >
+                                <DropdownMenuItem
+                                    className="focus:bg-zinc-700 cursor-pointer gap-2 text-xs"
+                                    onClick={() =>
+                                        navigate(
+                                            `${ledgerBasePath}?account=${account.id}`,
+                                        )
+                                    }
+                                >
+                                    <BookOpen className="h-3.5 w-3.5" />
+                                    View ledger
                                 </DropdownMenuItem>
-                            )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                                <DropdownMenuItem
+                                    className="focus:bg-zinc-700 cursor-pointer gap-2 text-xs"
+                                    onClick={() => onAddChild(account)}
+                                >
+                                    <Plus className="h-3.5 w-3.5" />
+                                    Add sub-account
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    className="focus:bg-zinc-700 cursor-pointer gap-2 text-xs"
+                                    onClick={() => onEdit(account)}
+                                >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                    Edit
+                                </DropdownMenuItem>
+                                {account.is_active && (
+                                    <DropdownMenuItem
+                                        className="focus:bg-red-500/10 text-red-400 cursor-pointer gap-2 text-xs"
+                                        onClick={() => onDeactivate(account)}
+                                    >
+                                        <Power className="h-3.5 w-3.5" />
+                                        Deactivate
+                                    </DropdownMenuItem>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
                 </div>
             </div>
 
@@ -168,7 +190,9 @@ const navigate = useNavigate()
                             key={child.id}
                             account={child}
                             depth={depth + 1}
+                            readOnly={readOnly}
                             onEdit={onEdit}
+                            ledgerBasePath={ledgerBasePath}
                             onDeactivate={onDeactivate}
                             onAddChild={onAddChild}
                         />

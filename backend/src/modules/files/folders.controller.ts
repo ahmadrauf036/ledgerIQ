@@ -39,34 +39,54 @@ export const createFolder = async (req: AuthRequest, res: Response) => {
     }
 };
 
-// PATCH /api/files/folders/:id
+
+
+
+// PATCH /api/files/folders/:id (in folders.controller.ts)
 export const updateFolder = async (req: AuthRequest, res: Response) => {
-    console.log(req.body)
-    const parsed = updateFolderSchema.safeParse(req.body);
+    const parsed = updateFolderSchema.safeParse(req.body)
     if (!parsed.success) {
-        return sendError(res, parsed.error.issues[0].message);
+        return sendError(res, parsed.error.issues[0].message)
     }
     try {
+        const existing = await foldersService.getFolderById(req.params.id as string)
+
+        if (
+            req.user!.role !== "super_admin" &&
+            existing.company_id !== req.user!.company_id
+        ) {
+            return sendError(res, "You do not have access to this folder", 403)
+        }
+
         const folder = await foldersService.updateFolder(
             req.params.id as string,
             parsed.data,
-            req.user!.id,
-        );
-        return sendSuccess(res, folder);
+            req.user!.id
+        )
+        return sendSuccess(res, folder)
     } catch (err) {
-        return sendError(res, (err as Error).message);
+        return sendError(res, (err as Error).message)
     }
-};
+}
 
 // DELETE /api/files/folders/:id
 export const deleteFolder = async (req: AuthRequest, res: Response) => {
     try {
+        const existing = await foldersService.getFolderById(req.params.id as string)
+
+        if (
+            req.user!.role !== "super_admin" &&
+            existing.company_id !== req.user!.company_id
+        ) {
+            return sendError(res, "You do not have access to this folder", 403)
+        }
+
         const result = await foldersService.deleteFolder(
             req.params.id as string,
-            req.user!.id,
-        );
-        return sendSuccess(res, result);
+            req.user!.id
+        )
+        return sendSuccess(res, result)
     } catch (err) {
-        return sendError(res, (err as Error).message);
+        return sendError(res, (err as Error).message)
     }
-};
+}
